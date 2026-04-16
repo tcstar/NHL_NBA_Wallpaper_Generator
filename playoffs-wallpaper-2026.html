@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>2026 NHL + NBA Playoffs Wallpaper</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:#111827;}
+body{
+  font-family:'Barlow',sans-serif;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+
+.toolbar{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;flex-shrink:0;}
+button{padding:8px 20px;font-size:12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);color:#fff;cursor:pointer;transition:background .15s;}
+button:hover{background:rgba(255,255,255,0.14);}
+.btn-u{background:#1d4ed8;border-color:#1d4ed8;}
+.btn-u:hover{background:#1e40af;}
+#status{color:rgba(255,255,255,0.45);font-size:11px;min-height:16px;text-align:center;flex-shrink:0;}
+
+/*
+  #wp-scaler: always 1280x720 in DOM pixels, scaled via transform.
+  JS sets the scale so the wallpaper fills 80% of the viewport,
+  keeping it fully visible with no scrollbars. transform-origin is
+  center so it stays horizontally and vertically centered.
+*/
+#wp-scaler{
+  flex-shrink:0;
+  transform-origin:top left;
+  /* width/height set by JS to match scaled visual size so flex layout is correct */
+}
+#wp{width:1280px;height:720px;background:#070910;position:relative;overflow:hidden;flex-shrink:0;border-radius:6px;display:flex;flex-direction:column;}
+#wp::after{content:'';position:absolute;left:0;right:0;top:360px;height:1px;background:rgba(255,255,255,0.07);pointer-events:none;z-index:1;}
+
+.half{width:1280px;height:360px;position:relative;flex-shrink:0;display:flex;flex-direction:column;}
+.half-nhl{border-top:2px solid #3b7dd8;}
+.half-nba{border-bottom:2px solid #d45f18;}
+
+.wm{position:absolute;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:300px;letter-spacing:-8px;pointer-events:none;user-select:none;top:50%;left:50%;transform:translate(-50%,-50%);white-space:nowrap;z-index:0;}
+.half-nhl .wm{color:rgba(59,125,216,0.05);}
+.half-nba .wm{color:rgba(212,95,24,0.05);}
+
+.hdr{display:flex;align-items:baseline;gap:10px;padding:6px 20px 2px;position:relative;z-index:2;flex-shrink:0;}
+.hdr-name{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;letter-spacing:3px;text-transform:uppercase;}
+.c-nhl{color:#4a90e8;} .c-nba{color:#e8682a;}
+.hdr-sub{font-size:8px;color:rgba(255,255,255,0.25);letter-spacing:2px;text-transform:uppercase;}
+.hdr-date{margin-left:auto;font-size:8px;color:rgba(255,255,255,0.18);font-family:'Barlow Condensed',sans-serif;}
+
+.bracket{flex:1;min-height:0;display:flex;align-items:stretch;padding:0 20px 2px;position:relative;z-index:2;}
+
+.r-col{display:flex;flex-direction:column;justify-content:space-around;flex-shrink:0;padding:1px 0;gap:2px;}
+.g{width:9px;flex-shrink:0;}
+.gf{flex:1;min-width:0;}
+
+/* ── SERIES CARD ──
+   Fixed width 145px. Height is flexible — grows with game log rows.
+   We cap the game log at 7 rows max (a full series).
+*/
+.sc{
+  width:145px;
+  background:rgba(255,255,255,0.036);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:5px;
+  padding:4px 6px 4px;
+  position:relative;
+  flex-shrink:0;
+  display:flex;flex-direction:column;
+}
+.sc.live{border-color:rgba(74,222,128,0.3);}
+.sc.done{border-color:rgba(255,255,255,0.04);}
+.sc.fin{width:160px;}
+.half-nhl .sc.fin{border-color:rgba(74,144,232,0.3);}
+.half-nba .sc.fin{border-color:rgba(232,104,42,0.3);}
+
+/* team rows */
+.tr{display:flex;align-items:center;gap:4px;height:19px;}
+.tr img.lg{width:18px;height:18px;object-fit:contain;flex-shrink:0;}
+.lg-fb{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,0.09);display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;color:rgba(255,255,255,0.45);flex-shrink:0;}
+.t-sd{font-size:7.5px;color:rgba(255,255,255,0.22);width:13px;text-align:right;flex-shrink:0;font-family:'Barlow Condensed',sans-serif;}
+.t-nm{font-size:9.5px;font-weight:600;color:rgba(255,255,255,0.72);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.t-wn{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:rgba(255,255,255,0.28);width:12px;text-align:center;flex-shrink:0;}
+.sdiv{height:1px;background:rgba(255,255,255,0.065);margin:1px 0;}
+
+.tr.lead .t-nm{color:#fff;} .tr.lead .t-wn{color:#f5c518;}
+.tr.elim .t-nm{color:rgba(255,255,255,0.2);text-decoration:line-through;}
+.tr.elim img.lg,.tr.elim .lg-fb{opacity:0.2;}
+.tr.tbd  .t-nm{color:rgba(255,255,255,0.26);font-style:italic;}
+
+/* series status — top right corner */
+.ss{position:absolute;top:3px;right:5px;font-family:'Barlow Condensed',sans-serif;font-size:7.5px;font-weight:700;letter-spacing:.3px;color:rgba(255,255,255,0.2);}
+.ss.live{color:#4ade80;} .ss.done{color:rgba(255,255,255,0.16);}
+
+/* ── GAME LOG ── */
+.gl{
+  margin-top:2px;
+  border-top:1px solid rgba(255,255,255,0.06);
+  padding-top:2px;
+  display:flex;flex-direction:column;gap:1px;
+}
+.gl-row{
+  display:flex;align-items:baseline;gap:2px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:7px;
+  color:rgba(255,255,255,0.3);
+  line-height:1.15;
+  white-space:nowrap;overflow:hidden;
+}
+.gl-gn{width:14px;flex-shrink:0;color:rgba(255,255,255,0.15);font-size:6.5px;}
+.gl-sc{flex:1;overflow:hidden;text-overflow:ellipsis;letter-spacing:.1px;}
+.gl-ot{font-size:6px;color:rgba(255,255,255,0.18);flex-shrink:0;}
+.gl-row.glw .gl-sc{color:rgba(255,255,255,0.52);}
+.gl-row.gll .gl-sc{color:rgba(255,255,255,0.25);}
+.gl-row.glv .gl-sc{color:#4ade80;}
+
+.cc{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;flex-shrink:0;width:160px;}
+.cc-lbl{font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:800;letter-spacing:2px;text-transform:uppercase;text-align:center;}
+.half-nhl .cc-lbl{color:#4a90e8;} .half-nba .cc-lbl{color:#e8682a;}
+.troph{font-size:16px;line-height:1;}
+
+.rl{font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.16);text-align:center;margin-bottom:1px;white-space:nowrap;flex-shrink:0;}
+
+#foot{position:absolute;bottom:0;left:0;right:0;height:20px;background:rgba(0,0,0,0.55);z-index:5;display:flex;align-items:center;justify-content:space-between;padding:0 20px;}
+.fl{font-size:8px;color:rgba(255,255,255,0.2);font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px;}
+
+#ldr{display:none;position:absolute;inset:0;background:rgba(7,9,16,0.88);align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:50;border-radius:6px;}
+#ldr.on{display:flex;}
+.spin{width:26px;height:26px;border:2px solid rgba(255,255,255,0.1);border-top-color:#4a90e8;border-radius:50%;animation:sp .8s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.ltxt{font-size:11px;color:rgba(255,255,255,0.4);font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;}
+.cv{position:absolute;inset:0;pointer-events:none;z-index:1;}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <button class="btn-u" onclick="updateScores()">&#8635; Update Scores</button>
+  <button id="btn-dl" onclick="exportWP()">&#8659; Download JPEG</button>
+</div>
+<div id="status"></div>
+
+<div id="wp-scaler">
+<div id="wp">
+  <div id="ldr"><div class="spin"></div><div class="ltxt" id="ltxt">Fetching scores…</div></div>
+
+  <div class="half half-nhl" id="h-nhl">
+    <div class="wm">NHL</div>
+    <canvas class="cv" id="cv-nhl"></canvas>
+    <div class="hdr">
+      <span class="hdr-name c-nhl">NHL — Stanley Cup Playoffs 2026</span>
+      <span class="hdr-sub">First Round · Best of 7</span>
+      <span class="hdr-date" id="wp-date"></span>
+    </div>
+    <div class="bracket" id="br-nhl"></div>
+  </div>
+
+  <div class="half half-nba" id="h-nba">
+    <div class="wm">NBA</div>
+    <canvas class="cv" id="cv-nba"></canvas>
+    <div class="hdr">
+      <span class="hdr-name c-nba">NBA Playoffs 2026</span>
+      <span class="hdr-sub">First Round · Best of 7</span>
+    </div>
+    <div class="bracket" id="br-nba"></div>
+  </div>
+
+  <div id="foot">
+    <span class="fl" id="f-upd">Not yet updated — click Update Scores</span>
+    <span class="fl">&#9679; LIVE &nbsp; &#9670; SERIES LEAD &nbsp; &#9632; FINAL</span>
+  </div>
+</div><!-- /#wp -->
+</div><!-- /#wp-scaler -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+document.getElementById('wp-date').textContent =
+  new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+
+const LOGOS = {
+  'Buffalo Sabres':        'https://a.espncdn.com/i/teamlogos/nhl/500/buf.png',
+  'Boston Bruins':         'https://a.espncdn.com/i/teamlogos/nhl/500/bos.png',
+  'Montreal Canadiens':    'https://a.espncdn.com/i/teamlogos/nhl/500/mtl.png',
+  'Tampa Bay Lightning':   'https://a.espncdn.com/i/teamlogos/nhl/500/tb.png',
+  'Carolina Hurricanes':   'https://a.espncdn.com/i/teamlogos/nhl/500/car.png',
+  'Ottawa Senators':       'https://a.espncdn.com/i/teamlogos/nhl/500/ott.png',
+  'Pittsburgh Penguins':   'https://a.espncdn.com/i/teamlogos/nhl/500/pit.png',
+  'Philadelphia Flyers':   'https://a.espncdn.com/i/teamlogos/nhl/500/phi.png',
+  'Colorado Avalanche':    'https://a.espncdn.com/i/teamlogos/nhl/500/col.png',
+  'Los Angeles Kings':     'https://a.espncdn.com/i/teamlogos/nhl/500/la.png',
+  'Dallas Stars':          'https://a.espncdn.com/i/teamlogos/nhl/500/dal.png',
+  'Minnesota Wild':        'https://a.espncdn.com/i/teamlogos/nhl/500/min.png',
+  'Vegas Golden Knights':  'https://a.espncdn.com/i/teamlogos/nhl/500/vgk.png',
+  'Utah Mammoth':          'https://a.espncdn.com/i/teamlogos/nhl/500/uth.png',
+  'Edmonton Oilers':       'https://a.espncdn.com/i/teamlogos/nhl/500/edm.png',
+  'Anaheim Ducks':         'https://a.espncdn.com/i/teamlogos/nhl/500/ana.png',
+  'Detroit Pistons':       'https://a.espncdn.com/i/teamlogos/nba/500/det.png',
+  'Boston Celtics':        'https://a.espncdn.com/i/teamlogos/nba/500/bos.png',
+  'Philadelphia 76ers':    'https://a.espncdn.com/i/teamlogos/nba/500/phi.png',
+  'New York Knicks':       'https://a.espncdn.com/i/teamlogos/nba/500/ny.png',
+  'Atlanta Hawks':         'https://a.espncdn.com/i/teamlogos/nba/500/atl.png',
+  'Cleveland Cavaliers':   'https://a.espncdn.com/i/teamlogos/nba/500/cle.png',
+  'Toronto Raptors':       'https://a.espncdn.com/i/teamlogos/nba/500/tor.png',
+  'Oklahoma City Thunder': 'https://a.espncdn.com/i/teamlogos/nba/500/okc.png',
+  'San Antonio Spurs':     'https://a.espncdn.com/i/teamlogos/nba/500/sa.png',
+  'Portland Trail Blazers':'https://a.espncdn.com/i/teamlogos/nba/500/por.png',
+  'Denver Nuggets':        'https://a.espncdn.com/i/teamlogos/nba/500/den.png',
+  'Minnesota Timberwolves':'https://a.espncdn.com/i/teamlogos/nba/500/min.png',
+  'Los Angeles Lakers':    'https://a.espncdn.com/i/teamlogos/nba/500/lal.png',
+  'Houston Rockets':       'https://a.espncdn.com/i/teamlogos/nba/500/hou.png',
+  'Charlotte Hornets':     'https://a.espncdn.com/i/teamlogos/nba/500/cha.png',
+  'Orlando Magic':         'https://a.espncdn.com/i/teamlogos/nba/500/orl.png',
+  'Golden State Warriors': 'https://a.espncdn.com/i/teamlogos/nba/500/gs.png',
+  'Phoenix Suns':          'https://a.espncdn.com/i/teamlogos/nba/500/phx.png',
+};
+
+/* abbreviation map for compact game log display */
+const ABBR = {
+  'Buffalo Sabres':'BUF','Boston Bruins':'BOS','Montreal Canadiens':'MTL',
+  'Tampa Bay Lightning':'TBL','Carolina Hurricanes':'CAR','Ottawa Senators':'OTT',
+  'Pittsburgh Penguins':'PIT','Philadelphia Flyers':'PHI','Colorado Avalanche':'COL',
+  'Los Angeles Kings':'LAK','Dallas Stars':'DAL','Minnesota Wild':'MIN',
+  'Vegas Golden Knights':'VGK','Utah Mammoth':'UTA','Edmonton Oilers':'EDM',
+  'Anaheim Ducks':'ANA','Detroit Pistons':'DET','Boston Celtics':'BOS',
+  'Philadelphia 76ers':'PHI','New York Knicks':'NYK','Atlanta Hawks':'ATL',
+  'Cleveland Cavaliers':'CLE','Toronto Raptors':'TOR','Oklahoma City Thunder':'OKC',
+  'San Antonio Spurs':'SAS','Portland Trail Blazers':'POR','Denver Nuggets':'DEN',
+  'Minnesota Timberwolves':'MIN','Los Angeles Lakers':'LAL','Houston Rockets':'HOU',
+  'Charlotte Hornets':'CHA','Orlando Magic':'ORL','Golden State Warriors':'GSW',
+  'Phoenix Suns':'PHX',
+};
+function abbr(name){ return ABBR[name] || name.split(' ').map(w=>w[0]).join('').slice(0,3).toUpperCase(); }
+
+function logoEl(name,isTbd){
+  if(isTbd||!name||name.startsWith('TBD')) return '<div class="lg-fb">?</div>';
+  const url=LOGOS[name];
+  const ab=name.split(' ').map(w=>w[0]).join('').slice(0,3).toUpperCase();
+  if(!url) return `<div class="lg-fb">${ab}</div>`;
+  return `<img class="lg" src="${url}" alt="${name}" onerror="this.outerHTML='<div class=lg-fb>${ab}</div>'">`;
+}
+
+/* ── DEFAULT DATA ──
+   Each matchup now has a `games` array of played game results:
+   { t1Score, t2Score, isLive, overtime }  (ordered game 1..7)
+*/
+let D = {
+  nhl:{trophy:'🏒',label:'Stanley Cup Final',
+    L:{
+      r1:[
+        {t1:'Buffalo Sabres',     s1:'A1', t2:'Boston Bruins',       s2:'WC1',w1:0,w2:0,st:'pending',games:[]},
+        {t1:'Montreal Canadiens', s1:'A2', t2:'Tampa Bay Lightning',  s2:'A3', w1:0,w2:0,st:'pending',games:[]},
+        {t1:'Carolina Hurricanes',s1:'M1', t2:'Ottawa Senators',      s2:'WC2',w1:0,w2:0,st:'pending',games:[]},
+        {t1:'Pittsburgh Penguins',s1:'M2', t2:'Philadelphia Flyers',  s2:'M3', w1:0,w2:0,st:'pending',games:[]},
+      ],
+      r2:[{t1:'TBD',s1:'',t2:'TBD',s2:'',w1:0,w2:0,st:'pending',tbd:true,games:[]},{t1:'TBD',s1:'',t2:'TBD',s2:'',w1:0,w2:0,st:'pending',tbd:true,games:[]}],
+      cf:[{t1:'TBD',s1:'',t2:'TBD',s2:'',w1:0,w2:0,st:'pending',tbd:true,games:[]}],
+    },
+    R:{
+      r1:[
+        {t1:'Colorado Avalanche',   s1:'C1', t2:'Los Angeles Kings', s2:'WC2',w1:0,w2:0,st:'pending',games:[]},
+        {t1:'Dallas Stars',         s1:'C2', t2:'Minnesota Wild',    s2:'C3', w1:0,w2:0,st:'pending',games:[]},
+        {t1:'Vegas Golden Knights', s1:'P1', t2:'Utah Mammoth',      s2:'WC1',w1:0,w2:0,st:'pending',games:[]},
+        {t1:'Edmonton Oilers',      s1:'P2', t2:'Anaheim Ducks',     s2:'P3', w1:0,w2:0,st:'pending',games:[]},
+      ],
+      r2:[{t1:'TBD',s1:'',t2:'TBD',s2:'',w1:0,w2:0,st:'pending',tbd:true,games:[]},{t1:'TBD',s1:'',t2:'TBD',s2:'',w1:0,w2:0,st:'pending',tbd:true,games:[]}],
+      cf:[{t1:'TBD',s1:'',t2:'TBD',s2:'',w1:0,w2:0,st:'pending',tbd:true,games:[]}],
+    },
+    final:{t1:'TBD',s1:'East',t2:'TBD',s2:'West',w1:0,w2:0,st:'pending',tbd:true,games:[]},
+  },
+  nba:{trophy:'🏀',label:'NBA Finals',
+    L:{
+      r1:[
+        {t1:'Detroit Pistons',    s1:'E1', t2:'TBD (play-in)',          s2:'E8',w1:0,w2:0,st:'pending',tbd2:true,games:[]},
+        {t1:'Boston Celtics',     s1:'E2', t2:'Philadelphia 76ers',      s2:'E7',w1:0,w2:0,st:'pending',games:[]},
+        {t1:'New York Knicks',    s1:'E3', t2:'Atlanta Hawks',           s2:'E6',w1:0,w2:0,st:'pending',games:[]},
+        {t1:'Cleveland Cavaliers',s1:'E4', t2:'Toronto Raptors',         s2:'E5',w1:0,w2:0,st:'pending',games:[]},
+      ],
+      r2:[{t1:'TBD',s1:'',t2:'TBD',s2:'',w1:0,w2:0,st:'pending',tbd:true,games:[]},{t1:'TBD',s1:'',t2:'TBD',s2:'',w1:0,w2:0,st:'pending',tbd:true,games:[]}],
+      cf:[{t1:'TBD',s1:'',t2:'TBD',s2:'',w1:0,w2:0,st:'pending',tbd:true,games:[]}],
+    },
+    R:{
+      r1:[
+        {t1:'Oklahoma City Thunder',s1:'W1', t2:'TBD (play-in)',          s2:'W8',w1:0,w2:0,st:'pending',tbd2:true,games:[]},
+        {t1:'San Antonio Spurs',    s1:'W2', t2:'Portland Trail Blazers', s2:'W7',w1:0,w2:0,st:'pending',games:[]},
+        {t1:'Denver Nuggets',       s1:'W3', t2:'Minnesota Timberwolves', s2:'W6',w1:0,w2:0,st:'pending',games:[]},
+        {t1:'Los Angeles Lakers',   s1:'W4', t2:'Houston Rockets',        s2:'W5',w1:0,w2:0,st:'pending',games:[]},
+      ],
+      r2:[{t1:'TBD',s1:'',t2:'TBD',s2:'',w1:0,w2:0,st:'pending',tbd:true,games:[]},{t1:'TBD',s1:'',t2:'TBD',s2:'',w1:0,w2:0,st:'pending',tbd:true,games:[]}],
+      cf:[{t1:'TBD',s1:'',t2:'TBD',s2:'',w1:0,w2:0,st:'pending',tbd:true,games:[]}],
+    },
+    final:{t1:'TBD',s1:'East',t2:'TBD',s2:'West',w1:0,w2:0,st:'pending',tbd:true,games:[]},
+  }
+};
+
+/* ── ESPN FETCH ── */
+async function fetchESPN(sport, league) {
+  const url = `https://site.api.espn.com/apis/site/v2/sports/${sport}/${league}/scoreboard?seasontype=3&limit=100`;
+  const r = await fetch(url);
+  const j = await r.json();
+  return j.events || [];
+}
+
+/* ── APPLY ESPN EVENTS: update wins + game scores + promote winners ── */
+function applyESPNEvents(events, side) {
+  /* Step 1: build series-level wins map AND per-series game log.
+     Key: canonical matchup key = sorted pair of team names joined by '|'
+     Value: { wins:{teamA:n, teamB:n}, games:[{t1,s1,t2,s2,isLive,ot}...], isLive }
+  */
+  const seriesMap = {}; /* "TEAMA|TEAMB" → { winsMap, games, isLive } */
+
+  for (const ev of events) {
+    const comp = ev.competitions && ev.competitions[0];
+    if (!comp) continue;
+    const isLive = !!(comp.status && comp.status.type && comp.status.type.state === 'in');
+    const isDone = !!(comp.status && comp.status.type && comp.status.type.completed);
+
+    /* Get the two competitors */
+    const comps = comp.competitors || [];
+    if (comps.length < 2) continue;
+
+    /* ESPN puts home team at index 0 */
+    const home = comps.find(c=>c.homeAway==='home') || comps[0];
+    const away = comps.find(c=>c.homeAway==='away') || comps[1];
+
+    const homeName = home.team && (home.team.displayName || home.team.name);
+    const awayName = away.team && (away.team.displayName || away.team.name);
+    if (!homeName || !awayName) continue;
+
+    const homeScore = parseInt(home.score) || 0;
+    const awayScore = parseInt(away.score) || 0;
+
+    /* Build canonical key (sorted so order doesn't matter) */
+    const key = [homeName, awayName].sort().join('|');
+
+    if (!seriesMap[key]) {
+      seriesMap[key] = {
+        winsMap: {},
+        games: [],
+        isLive: false,
+        teams: [homeName, awayName],
+      };
+    }
+    const entry = seriesMap[key];
+    if (isLive) entry.isLive = true;
+
+    /* Series wins from the series object */
+    const series = comp.series;
+    if (series && series.competitors) {
+      for (const sc of series.competitors) {
+        const name = sc.team && (sc.team.displayName || sc.team.name);
+        if (name) entry.winsMap[name] = Math.max(entry.winsMap[name]||0, parseInt(sc.wins)||0);
+      }
+    }
+
+    /* Detect overtime: status note or period > regulation */
+    let otLabel = '';
+    if (comp.status) {
+      const note = comp.status.type && comp.status.type.shortDetail || '';
+      const period = comp.status.period || 0;
+      // NHL: regulation = 3 periods, NBA: 4 quarters
+      if (note.toUpperCase().includes('OT') || note.toUpperCase().includes('OVERTIME')) otLabel = 'OT';
+      else if (note.toUpperCase().includes('2OT')) otLabel = '2OT';
+      else if (note.toUpperCase().includes('3OT')) otLabel = '3OT';
+    }
+
+    /* Only record completed or live games in the log */
+    if (isDone || isLive) {
+      entry.games.push({
+        homeName, awayName, homeScore, awayScore,
+        isLive, otLabel,
+        date: ev.date || '',
+      });
+    }
+  }
+
+  /* Sort each series' games by date */
+  for (const key of Object.keys(seriesMap)) {
+    seriesMap[key].games.sort((a,b) => a.date < b.date ? -1 : 1);
+  }
+
+  /* Step 2: helper to find series entry for a matchup */
+  function findSeries(t1, t2) {
+    const key = [t1, t2].sort().join('|');
+    return seriesMap[key] || null;
+  }
+
+  /* Step 3: update a single matchup */
+  function updateMatchup(m) {
+    if (m.tbd) return;
+    const iT1 = !!(m.tbd1), iT2 = !!(m.tbd2);
+    const entry = (!iT1 && !iT2) ? findSeries(m.t1, m.t2) : null;
+    if (entry) {
+      m.w1 = entry.winsMap[m.t1] || 0;
+      m.w2 = entry.winsMap[m.t2] || 0;
+      /* Build game log from entry.games, orienting scores as t1/t2 */
+      m.games = entry.games.map(g => {
+        const t1IsHome = g.homeName === m.t1;
+        return {
+          t1Score: t1IsHome ? g.homeScore : g.awayScore,
+          t2Score: t1IsHome ? g.awayScore : g.homeScore,
+          isLive: g.isLive,
+          ot: g.otLabel,
+        };
+      });
+      if (entry.isLive)            m.st = 'live';
+      else if (m.w1===4||m.w2===4) m.st = 'done';
+      else if (m.w1>0 ||m.w2>0)   m.st = 'pending';
+    }
+  }
+
+  /* Step 4: winner helper */
+  function winner(m) {
+    if (m.w1===4) return {name:m.t1, seed:m.s1};
+    if (m.w2===4) return {name:m.t2, seed:m.s2};
+    return null;
+  }
+
+  /* Step 5: place winner into next-round slot */
+  function place(target, slot, w) {
+    if (!w) return;
+    if (slot==='t1'){target.t1=w.name;target.s1=w.seed;target.tbd=false;target.tbd1=false;}
+    else            {target.t2=w.name;target.s2=w.seed;target.tbd=false;target.tbd2=false;}
+  }
+
+  /* Step 6: process both sides round by round */
+  for (const lr of ['L','R']) {
+    const s = side[lr];
+    s.r1.forEach(m => updateMatchup(m));
+    place(s.r2[0],'t1',winner(s.r1[0])); place(s.r2[0],'t2',winner(s.r1[1]));
+    place(s.r2[1],'t1',winner(s.r1[2])); place(s.r2[1],'t2',winner(s.r1[3]));
+    s.r2.forEach(m => updateMatchup(m));
+    place(s.cf[0],'t1',winner(s.r2[0])); place(s.cf[0],'t2',winner(s.r2[1]));
+    s.cf.forEach(m => updateMatchup(m));
+  }
+  place(side.final,'t1',winner(side.L.cf[0]));
+  place(side.final,'t2',winner(side.R.cf[0]));
+  updateMatchup(side.final);
+}
+
+/* ── RENDER ── */
+function gameLogHTML(m) {
+  if (!m.games || m.games.length === 0) return '';
+  const rows = m.games.map((g, i) => {
+    const gn = `G${i+1}`;
+    const cls = g.isLive ? 'gl-row glv'
+              : g.t1Score > g.t2Score ? 'gl-row glw'
+              : 'gl-row gll';
+    const score = `${abbr(m.t1)} ${g.t1Score}–${g.t2Score} ${abbr(m.t2)}`;
+    const ot = g.ot ? `<span class="gl-ot">${g.ot}</span>` : '';
+    return `<div class="${cls}"><span class="gl-gn">${gn}</span><span class="gl-sc">${score}</span>${ot}</div>`;
+  }).join('');
+  return `<div class="gl">${rows}</div>`;
+}
+
+function scHTML(m, isFin) {
+  const e1=m.w2===4,e2=m.w1===4;
+  const l1=m.w1>m.w2&&!e1,l2=m.w2>m.w1&&!e2;
+  const uns=m.w1===0&&m.w2===0&&m.st==='pending';
+  const iT1=!!(m.tbd||m.tbd1),iT2=!!(m.tbd||m.tbd2);
+  const stT=m.st==='live'?'LIVE':(e1||e2)?`${m.w1}–${m.w2} FINAL`:uns?'APR 18':`${m.w1}–${m.w2}`;
+  const stC=m.st==='live'?' live':(e1||e2)?' done':'';
+  const c1=e1?'tr elim':l1?'tr lead':iT1?'tr tbd':'tr';
+  const c2=e2?'tr elim':l2?'tr lead':iT2?'tr tbd':'tr';
+  const cc='sc'+(isFin?' fin':'')+(m.st==='live'?' live':'')+((e1||e2)?' done':'');
+  return `<div class="${cc}">
+    <span class="ss${stC}">${stT}</span>
+    <div class="${c1}">${logoEl(m.t1,iT1)}<span class="t-sd">${m.s1}</span><span class="t-nm">${m.t1}</span><span class="t-wn">${uns||iT1?'':m.w1}</span></div>
+    <div class="sdiv"></div>
+    <div class="${c2}">${logoEl(m.t2,iT2)}<span class="t-sd">${m.s2}</span><span class="t-nm">${m.t2}</span><span class="t-wn">${uns||iT2?'':m.w2}</span></div>
+    ${gameLogHTML(m)}
+  </div>`;
+}
+
+function colHTML(series,justify,label){
+  return `<div class="r-col" style="justify-content:${justify}">
+    <div class="rl">${label}</div>
+    ${series.map(s=>scHTML(s,false)).join('')}
+  </div>`;
+}
+
+function renderHalf(lg,brId){
+  const d=D[lg];
+  document.getElementById(brId).innerHTML=`
+    ${colHTML(d.L.r1,'space-around','Round 1')}
+    <div class="g"></div>
+    ${colHTML(d.L.r2,'space-around','Round 2')}
+    <div class="g"></div>
+    ${colHTML(d.L.cf,'center','Conf. Final')}
+    <div class="gf"></div>
+    <div class="cc">
+      <div class="troph">${d.trophy}</div>
+      <div class="cc-lbl">${d.label}</div>
+      ${scHTML(d.final,true)}
+    </div>
+    <div class="gf"></div>
+    ${colHTML(d.R.cf,'center','Conf. Final')}
+    <div class="g"></div>
+    ${colHTML(d.R.r2,'space-around','Round 2')}
+    <div class="g"></div>
+    ${colHTML(d.R.r1,'space-around','Round 1')}
+  `;
+}
+
+function drawConn(halfId,cvId,brId){
+  const half=document.getElementById(halfId);
+  const cv=document.getElementById(cvId);
+  cv.width=1280;cv.height=360;
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,1280,360);
+  ctx.strokeStyle='rgba(255,255,255,0.07)';ctx.lineWidth=1;
+  const hRect=half.getBoundingClientRect();
+  const cols=Array.from(document.getElementById(brId).children).filter(el=>el.classList.contains('r-col'));
+  if(cols.length<6)return;
+  function cards(c){return Array.from(c.querySelectorAll('.sc'));}
+  function mY(el){const r=el.getBoundingClientRect();return r.top+r.height/2-hRect.top;}
+  function rX(el){const r=el.getBoundingClientRect();return r.right-hRect.left;}
+  function lX(el){const r=el.getBoundingClientRect();return r.left-hRect.left;}
+  function pairs(from,to,goR){
+    for(let i=0;i<to.length;i++){
+      const a=from[i*2],b=from[i*2+1],c=to[i];
+      if(!a||!b||!c)continue;
+      const x1=goR?rX(a):lX(a),y1=mY(a),x2=goR?rX(b):lX(b),y2=mY(b);
+      const xc=goR?lX(c):rX(c),yc=mY(c);
+      const mid=(x1+xc)/2;
+      ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(mid,y1);ctx.lineTo(mid,y2);ctx.lineTo(x2,y2);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(mid,yc);ctx.lineTo(xc,yc);ctx.stroke();
+    }
+  }
+  pairs(cards(cols[0]),cards(cols[1]),true);
+  pairs(cards(cols[1]),cards(cols[2]),true);
+  pairs(cards(cols[5]),cards(cols[4]),false);
+  pairs(cards(cols[4]),cards(cols[3]),false);
+}
+
+function render(){
+  renderHalf('nhl','br-nhl');
+  renderHalf('nba','br-nba');
+  requestAnimationFrame(()=>{
+    const wp = document.getElementById('wp');
+    const saved = wp.style.transform;
+    wp.style.transform = 'none';
+    drawConn('h-nhl','cv-nhl','br-nhl');
+    drawConn('h-nba','cv-nba','br-nba');
+    wp.style.transform = saved;
+  });
+}
+
+async function updateScores(){
+  const ldr=document.getElementById('ldr'),ltxt=document.getElementById('ltxt'),stat=document.getElementById('status');
+  ldr.classList.add('on');stat.textContent='';ltxt.textContent='Fetching scores from ESPN…';
+  try{
+    const [nhlEvents,nbaEvents] = await Promise.all([
+      fetchESPN('hockey','nhl'),
+      fetchESPN('basketball','nba'),
+    ]);
+    ltxt.textContent='Updating bracket…';
+    applyESPNEvents(nhlEvents, D.nhl);
+    applyESPNEvents(nbaEvents, D.nba);
+    render();
+    document.getElementById('f-upd').textContent=
+      'UPDATED '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}).toUpperCase();
+    stat.textContent='✓ Scores updated from ESPN';
+    setTimeout(()=>{stat.textContent='';},3000);
+  }catch(e){
+    stat.textContent='ESPN fetch failed (check internet connection). Showing current bracket.';
+    render();
+  }finally{ldr.classList.remove('on');}
+}
+
+/* ── DETECT SCREEN & OS ──
+   screenRes() returns the true pixel dimensions of the primary monitor,
+   accounting for devicePixelRatio (Retina / HiDPI screens).
+   isMac() detects macOS so we know whether the reserved bar is at the
+   top (macOS menu bar) or bottom (Windows/Linux taskbar).
+*/
+function screenRes() {
+  const dpr = window.devicePixelRatio || 1;
+  return {
+    w: Math.round(window.screen.width  * dpr),
+    h: Math.round(window.screen.height * dpr),
+  };
+}
+
+function isMac() {
+  return /mac/i.test(navigator.platform) || /mac/i.test(navigator.userAgent);
+}
+
+/* System bar height in physical pixels.
+   macOS menu bar: 25pt × dpr (25 at 1x, 50 on Retina).
+   Windows taskbar: 48px (standard, independent of dpr at 100% scaling).
+   We add a small extra buffer on each so nothing clips. */
+function systemBarPx() {
+  const dpr = window.devicePixelRatio || 1;
+  return isMac() ? Math.round(25 * dpr) : 48;
+}
+
+function updateButtonLabel() {
+  const {w, h} = screenRes();
+  const btn = document.getElementById('btn-dl');
+  if (btn) btn.textContent = '⬇ Download ' + w + '×' + h + ' JPEG';
+}
+
+async function exportWP(){
+  const stat = document.getElementById('status');
+  const {w: outW, h: outH} = screenRes();
+  const barH  = systemBarPx();
+  const onMac = isMac();
+
+  stat.textContent = 'Rendering ' + outW + '×' + outH + ' JPEG…';
+
+  const el = document.getElementById('wp');
+  /* Strip the display scale so html2canvas captures the full 1280×720 */
+  const savedTransform = el.style.transform;
+  const savedOrigin    = el.style.transformOrigin;
+  el.style.transform       = 'none';
+  el.style.transformOrigin = 'top left';
+
+  try {
+    /* Capture at a scale that maps 1280×720 → outW×outH content area */
+    const captureScale = outW / 1280;
+    const c = await html2canvas(el, {
+      backgroundColor: '#070910',
+      scale:     captureScale,
+      width:     1280,
+      height:    720,
+      useCORS:   true,
+      allowTaint: true,
+      logging:   false,
+    });
+
+    const out  = document.createElement('canvas');
+    out.width  = outW;
+    out.height = outH;
+    const octx = out.getContext('2d');
+
+    /* Fill entire canvas black (system bar area will stay black) */
+    octx.fillStyle = '#000000';
+    octx.fillRect(0, 0, outW, outH);
+
+    /* Content height = full height minus the system bar */
+    const contentH = outH - barH;
+
+    if (onMac) {
+      /* macOS: menu bar is at the TOP — draw content below it */
+      octx.drawImage(c, 0, barH, outW, contentH);
+    } else {
+      /* Windows/Linux: taskbar is at the BOTTOM — draw content above it */
+      octx.drawImage(c, 0, 0, outW, contentH);
+    }
+
+    const a = document.createElement('a');
+    a.download = 'playoffs-wallpaper-' + new Date().toISOString().slice(0, 10) + '.jpg';
+    a.href = out.toDataURL('image/jpeg', 0.92);
+    a.click();
+    stat.textContent = '✓ Saved! (' + outW + '×' + outH + ')';
+    setTimeout(() => { stat.textContent = ''; }, 3000);
+  } catch(e) {
+    stat.textContent = 'Export failed — try a screenshot tool.';
+  } finally {
+    el.style.transform       = savedTransform;
+    el.style.transformOrigin = savedOrigin;
+  }
+}
+
+/* ── SCALE TO FIT 80% OF VIEWPORT, CENTERED, NO SCROLLBARS ──
+   Strategy:
+   - #wp is always 1280x720 real DOM pixels (so export stays crisp).
+   - We compute the scale that fits 80% of the viewport (width and
+     height), whichever is tighter.
+   - transform-origin is top-left, so we manually center by setting
+     the scaler's own width/height to the scaled visual size. This
+     keeps the flex column layout correct so the toolbar sits above.
+   - html/body overflow:hidden prevents any scrollbars.
+*/
+function scaleWP() {
+  const toolbar = document.querySelector('.toolbar');
+  const status  = document.getElementById('status');
+  const scaler  = document.getElementById('wp-scaler');
+
+  /* Measure space consumed by toolbar + status + gaps */
+  const tbH  = toolbar ? toolbar.offsetHeight : 0;
+  const stH  = status  ? status.offsetHeight  : 0;
+  const gaps = 24; /* toolbar-gap + status-gap */
+  const taskbar = 48; /* Windows taskbar height — keeps image above start menu */
+
+  const availW = window.innerWidth;
+  const availH = window.innerHeight - tbH - stH - gaps - taskbar;
+
+  /* Scale to 80% of available space, tighter axis wins */
+  const scale = Math.min((availW * 0.90) / 1280, (availH * 0.90) / 720);
+
+  const scaledW = Math.round(1280 * scale);
+  const scaledH = Math.round(720  * scale);
+
+  /* Set the wrapper to the scaled visual dimensions so the flex
+     column sees the right size and the toolbar stays visible above */
+  scaler.style.width     = scaledW + 'px';
+  scaler.style.height    = scaledH + 'px';
+  scaler.style.overflow  = 'visible';
+
+  /* Shift the 1280px-wide #wp to sit inside the smaller wrapper */
+  const wp = document.getElementById('wp');
+  wp.style.transform       = `scale(${scale})`;
+  wp.style.transformOrigin = 'top left';
+}
+
+/* Draw connectors before applying scale transform so getBoundingClientRect
+   returns unscaled coordinates, then apply the visual scale. */
+function renderAndScale() {
+  render();
+  /* Temporarily remove transform so drawConn gets real coords */
+  const wp = document.getElementById('wp');
+  const saved = wp.style.transform;
+  wp.style.transform = 'none';
+  drawConn('h-nhl','cv-nhl','br-nhl');
+  drawConn('h-nba','cv-nba','br-nba');
+  wp.style.transform = saved;
+  scaleWP();
+}
+
+renderAndScale();
+updateButtonLabel();
+window.addEventListener('resize', () => {
+  scaleWP();
+  const wp = document.getElementById('wp');
+  const saved = wp.style.transform;
+  wp.style.transform = 'none';
+  drawConn('h-nhl','cv-nhl','br-nhl');
+  drawConn('h-nba','cv-nba','br-nba');
+  wp.style.transform = saved;
+});
+</script>
+</body>
+</html>
