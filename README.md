@@ -21,13 +21,31 @@ A single-file browser app that generates a live, updating desktop wallpaper show
 
 ## Usage
 
-1. Download `playoffs-wallpaper-2026.html`
-2. Open it in any modern browser (Chrome, Firefox, Edge, Safari)
-3. Click **↻ Update Scores** to fetch the latest series results from ESPN
-4. Click **⬇ Download JPEG** — the button label shows your detected resolution (e.g. `2560×1440`)
-5. Set the downloaded JPEG as your desktop wallpaper using **Fill** mode
+> **Important:** The file must be served from a local web server — browsers block API requests from `file://` pages. This is a one-command setup (see below).
 
-> **Tip:** Repeat step 3 each morning during the playoffs to keep scores current. Winner promotion happens automatically — teams advance through the bracket as they win series.
+### Starting the local server
+
+**Mac / Linux:**
+```bash
+cd ~/Downloads          # or wherever you saved the file
+python3 -m http.server 8000
+```
+
+**Windows (Command Prompt):**
+```cmd
+cd %USERPROFILE%\Downloads
+python -m http.server 8000
+```
+
+Then open **http://localhost:8000** in your browser and click the file name.
+
+### After opening in the browser
+
+1. Click **↻ Update** — the bracket loads automatically with the active season data from ESPN
+2. Click **⬇ Download JPEG** — exports at your screen's native resolution (label shows detected size)
+3. Set the downloaded JPEG as your desktop wallpaper using **Fill** mode
+
+> **Tip:** Keep the terminal/server running while you use it. Click Update each morning during playoffs to refresh scores. Stop the server with `Ctrl+C` when done.
 
 ---
 
@@ -82,9 +100,35 @@ R1 (4 series) → R2 (2 series) → Conf. Final (1 series) → [Championship] �
 
 ---
 
-## Updating for Future Seasons
+## Series card states
 
-The first-round matchups are hardcoded in the `D` object near the top of the script. At the start of a new playoff year, update the team names and seeds in that object. ESPN score fetching and winner promotion will handle the rest automatically.
+Each matchup card shows one of four states. The icon in the top-right corner matches the legend in the bottom-right of the wallpaper.
+
+| Icon | State | What you see |
+|---|---|---|
+| ◆ | Projected | Matchup based on current standings — playoffs haven't started yet |
+| (wins shown) | Series in progress | Win counts shown; leading team name and wins highlighted in gold |
+| ● | Live | A game is happening right now; current game score shown in green |
+| ■ | Final | Series over; eliminated team crossed out; all game scores shown |
+
+Example progression using Carolina Hurricanes vs Philadelphia Flyers:
+
+```
+◆  Projected         CAR vs PHI  (before playoffs start)
+   2–1 in progress   CAR leads — G1–G3 scores shown, winner in gold
+●  Live              CAR 2–1 PHI in G4, live score in green
+■  4–2 Final         CAR wins in 6, PHI crossed out, all game scores shown
+```
+
+---
+
+## Updating for future seasons
+
+Team matchups are fetched dynamically from ESPN's API each time you click **Update** — no code changes are needed from season to season. The app detects the active season automatically:
+
+- **Regular season** → shows projected bracket based on current standings
+- **Playoffs active** → switches to live bracket with real series wins and game scores
+- **Offseason** → shows a placeholder until the new season begins
 
 ---
 
