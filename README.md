@@ -111,14 +111,7 @@ Each matchup card shows one of four states. The icon in the top-right corner mat
 | ● | Live | A game is happening right now; current game score shown in green |
 | ■ | Final | Series over; eliminated team crossed out; all game scores shown |
 
-Example progression using Carolina Hurricanes vs Philadelphia Flyers:
-
-```
-◆  Projected         CAR vs PHI  (before playoffs start)
-   2–1 in progress   CAR leads — G1–G3 scores shown, winner in gold
-●  Live              CAR 2–1 PHI in G4, live score in green
-■  4–2 Final         CAR wins in 6, PHI crossed out, all game scores shown
-```
+![Series card states legend](legend-preview.png)
 
 ---
 
