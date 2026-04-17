@@ -19,11 +19,24 @@ A single-file browser app that generates a live, updating desktop wallpaper show
 
 ---
 
+## Live app
+
+**[Open the wallpaper generator](https://tcstar.github.io/NHL_NBA_Wallpaper_Generator/playoffs-wallpaper-2026.html)** — no download or install required. Works in any modern browser.
+
+---
+
 ## Usage
 
-> **Important:** The file must be served from a local web server — browsers block API requests from `file://` pages. This is a one-command setup (see below).
+1. Open the link above in your browser
+2. Click **↻ Update** — the bracket loads automatically with the active season data from ESPN
+3. Click **⬇ Download JPEG** — exports at your screen's native resolution (label shows detected size)
+4. Set the downloaded JPEG as your desktop wallpaper using **Fill** mode
 
-### Starting the local server
+> **Tip:** Click Update each morning during the playoffs to refresh scores. Winners automatically advance through the bracket as series are decided.
+
+### Running locally (optional)
+
+If you prefer to run the file locally rather than via the hosted link, browsers block API requests from `file://` pages, so you need a local web server:
 
 **Mac / Linux:**
 ```bash
@@ -37,15 +50,7 @@ cd %USERPROFILE%\Downloads
 python -m http.server 8000
 ```
 
-Then open **http://localhost:8000** in your browser and click the file name.
-
-### After opening in the browser
-
-1. Click **↻ Update** — the bracket loads automatically with the active season data from ESPN
-2. Click **⬇ Download JPEG** — exports at your screen's native resolution (label shows detected size)
-3. Set the downloaded JPEG as your desktop wallpaper using **Fill** mode
-
-> **Tip:** Keep the terminal/server running while you use it. Click Update each morning during playoffs to refresh scores. Stop the server with `Ctrl+C` when done.
+Then open **http://localhost:8000** in your browser and click the file name. Stop the server with `Ctrl+C` when done.
 
 ---
 
