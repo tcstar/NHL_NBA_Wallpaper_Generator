@@ -204,13 +204,46 @@ function isLocalFile() {
   return window.location.protocol === 'file:';
 }
 
+/* ── CLAUDE API RELAY ──
+   Routes an ESPN API URL through the Anthropic API using web_search,
+   which runs server-side and bypasses CORS/file:// restrictions.
+   Returns parsed JSON from the ESPN response.
+*/
+async function espnFetchViaClaude(url) {
+  const prompt = `Fetch this URL and return ONLY the raw JSON response body, nothing else, no markdown, no explanation:
+${url}`;
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 8000,
+      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (!resp.ok) throw new Error('Claude API error: ' + resp.status);
+  const data = await resp.json();
+  const text = (data.content || [])
+    .filter(b => b.type === 'text')
+    .map(b => b.text)
+    .join('');
+  /* Extract JSON from the response */
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error('No JSON in Claude response');
+  return JSON.parse(match[0]);
+}
+
 async function espnFetch(url) {
-  if (isLocalFile()) {
-    throw new Error('FILE_PROTOCOL');
+  /* Try direct fetch first (works from localhost or GitHub Pages) */
+  if (!isLocalFile()) {
+    try {
+      const r = await fetch(url);
+      if (r.ok) return r.json();
+    } catch(e) { /* fall through to Claude relay */ }
   }
-  const r = await fetch(url);
-  if (!r.ok) throw new Error('ESPN fetch failed (' + r.status + '): ' + url);
-  return r.json();
+  /* Fall back to Claude API relay (works from file:// and when direct fetch is blocked) */
+  return espnFetchViaClaude(url);
 }
 
 /* ── PLAYOFF YEAR FROM DATE ──
@@ -247,7 +280,7 @@ function getPlayoffYear() {
    Returns array of { name, abbr, logoUrl, wins, losses, divisionId, divisionName, conferenceId } */
 async function fetchStandings(sport, league) {
   const j = await espnFetch(
-    `https://site.api.espn.com/apis/v2/sports/${sport}/${league}/standings`
+    `https://site.web.api.espn.com/apis/v2/sports/${sport}/${league}/standings?type=0&level=3&sort=playoffseed:asc,points:desc,gamesplayed:asc`
   );
 
   /* ESPN standings structure (observed):
@@ -281,6 +314,7 @@ async function fetchStandings(sport, league) {
         divisionName: divName,
         confId:       confId,
         confName:     confName,
+        confAbbr:     node.abbreviation || '',
       });
     }
   }
@@ -327,15 +361,18 @@ async function fetchPlayoffGames(sport, league) {
 }
 
 /* ── BUILD PROJECTED NHL BRACKET FROM STANDINGS ──
-   ESPN returns NHL standings as flat conference lists (no division nesting).
-   We use the playoff seed stat (or points ranking) to order teams and build
-   the standard NHL bracket format:
-     Seeds 1-8 per conference, where:
-     1 = top div winner, 2 = other div winner (or best of remaining div winners)
-     3-6 = remaining div teams, 7-8 = wild cards
-   R1: 1v8, 2v7, 3v6, 4v5 (NHL seeds by points within the conference bracket)
-   This is a simplification — actual NHL R1 is div-based — but without division
-   data from the API, seeding by conference points is the best approximation.
+   NHL R1 format (division-based, not simple 1-8 seeding):
+   Per conference, two divisions each contribute 3 teams.
+   Two wild cards fill slots 7 & 8 (best remaining across both divs).
+
+   R1 matchups:
+     Best div winner (most pts)     vs WC2
+     Best div 2nd place             vs Best div 3rd place
+     Other div winner               vs WC1
+     Other div 2nd place            vs Other div 3rd place
+
+   We use the ESPN web standings API (level=3) which returns
+   conference → division → teams with playoffSeed stats.
 */
 function buildNHLProjected(standings, year) {
   const d = emptyBracket();
@@ -344,42 +381,80 @@ function buildNHLProjected(standings, year) {
   d.trophy = '🏒';
   d.label  = 'Stanley Cup Final';
 
-  /* Group by conference */
+  function ms(t1, t2, s1, s2) {
+    if (!t1) return {t1:'TBD',s1:s1||'',t2:t2?.name||'TBD',s2:s2||'',w1:0,w2:0,st:'pending',tbd:true,games:[],logo1:null,logo2:t2?.logoUrl||null,projected:true};
+    if (!t2) return {t1:t1.name,s1,t2:'TBD',s2:s2||'',w1:0,w2:0,st:'pending',tbd2:true,games:[],logo1:t1.logoUrl||null,logo2:null,projected:true};
+    LOGO_CACHE[t1.name] = t1.logoUrl; LOGO_CACHE[t2.name] = t2.logoUrl;
+    return {t1:t1.name,s1,t2:t2.name,s2,w1:0,w2:0,st:'pending',tbd:false,games:[],logo1:t1.logoUrl||null,logo2:t2.logoUrl||null,projected:true};
+  }
+
+  /* Group by conference then division using divisionId */
   const confs = {};
   for (const t of standings) {
     const ck = t.confId || t.confName || 'unk';
-    if (!confs[ck]) confs[ck] = { name: t.confName || t.confId || '', teams: [] };
-    confs[ck].teams.push(t);
+    const dk = t.divisionId || 'unk';
+    if (!confs[ck]) confs[ck] = { name: t.confName||'', abbr: t.confAbbr||'', divs: {} };
+    if (!confs[ck].divs[dk]) confs[ck].divs[dk] = { name: t.divisionName||'', teams: [] };
+    confs[ck].divs[dk].teams.push(t);
   }
 
   const confKeys = Object.keys(confs);
   if (confKeys.length < 2) return d;
 
-  const eastKey = confKeys.find(k => /east/i.test(confs[k].name||k)) || confKeys[0];
-  const westKey = confKeys.find(k => /west/i.test(confs[k].name||k)) || confKeys[1];
-
-  function makeSeries(t1, t2, s1, s2) {
-    if (!t1) return {t1:'TBD',s1:s1||'',t2:t2?.name||'TBD',s2:s2||'',w1:0,w2:0,st:'pending',tbd:true,games:[],logo1:null,logo2:t2?.logoUrl||null,projected:true};
-    if (!t2) return {t1:t1.name,s1,t2:'TBD',s2:s2||'',w1:0,w2:0,st:'pending',tbd2:true,games:[],logo1:t1.logoUrl||null,logo2:null,projected:true};
-    LOGO_CACHE[t1.name] = t1.logoUrl;
-    LOGO_CACHE[t2.name] = t2.logoUrl;
-    return {t1:t1.name,s1,t2:t2.name,s2,w1:0,w2:0,st:'pending',tbd:false,games:[],
-      logo1:t1.logoUrl||null,logo2:t2.logoUrl||null,projected:true};
-  }
+  let eastKey = confKeys.find(k => /east/i.test(confs[k].name||'') || /^east$/i.test(confs[k].abbr||''));
+  let westKey = confKeys.find(k => /west/i.test(confs[k].name||'') || /^west$/i.test(confs[k].abbr||''));
+  if (!eastKey && !westKey) { westKey = confKeys[0]; eastKey = confKeys[1]; }
+  else if (!eastKey) { eastKey = confKeys.find(k => k !== westKey) || confKeys[1]; }
+  else if (!westKey) { westKey = confKeys.find(k => k !== eastKey) || confKeys[0]; }
+  if (eastKey === westKey) { eastKey = confKeys[0]; westKey = confKeys[1]; }
 
   function fillSide(confKey, side) {
-    /* Sort by points desc (or pct if no points) — top 8 make playoffs */
-    const teams = confs[confKey].teams
+    const conf = confs[confKey];
+    const divKeys = Object.keys(conf.divs);
+
+    /* Sort each division's teams by playoff seed then points */
+    const sortDiv = dk => conf.divs[dk].teams
       .filter(t => t.name)
-      .sort((a,b) => (b.points||0) - (a.points||0) || b.pct - a.pct)
-      .slice(0, 8);
-    if (teams.length < 4) return;
-    const [s1,s2,s3,s4,s5,s6,s7,s8] = teams;
-    /* Standard NHL seeding bracket: 1v8, 2v7, 3v6, 4v5 */
-    side.r1[0] = makeSeries(s1, s8||null, '1', '8');
-    side.r1[1] = makeSeries(s2, s7||null, '2', '7');
-    side.r1[2] = makeSeries(s3, s6||null, '3', '6');
-    side.r1[3] = makeSeries(s4, s5||null, '4', '5');
+      .sort((a,b) => (a.playoffSeed||99) - (b.playoffSeed||99) || (b.points||0) - (a.points||0));
+
+    /* Get all teams sorted by points to find wild cards */
+    const allTeams = Object.values(conf.divs)
+      .flatMap(div => div.teams.filter(t => t.name))
+      .sort((a,b) => (b.points||0) - (a.points||0));
+
+    if (divKeys.length >= 2) {
+      /* Division-based bracket */
+      const divTeams = divKeys.map(dk => sortDiv(dk));
+
+      /* Top 3 from each division are the div's playoff qualifiers */
+      const div1 = divTeams[0].slice(0, 3);
+      const div2 = divTeams[1].slice(0, 3);
+
+      /* Wild cards = best remaining teams not in top 3 of any division */
+      const inTop3 = new Set([...div1, ...div2].map(t => t.name));
+      const wcs = allTeams.filter(t => !inTop3.has(t.name)).slice(0, 2);
+      const wc1 = wcs[0], wc2 = wcs[1];
+
+      /* Best division winner = div winner with more points */
+      const dw1 = div1[0], dw2 = div2[0];
+      const bestDiv   = (dw1?.points||0) >= (dw2?.points||0) ? div1 : div2;
+      const otherDiv  = bestDiv === div1 ? div2 : div1;
+
+      /* NHL R1: best div winner vs WC2, best div 2+3 vs each other,
+                other div winner vs WC1, other div 2+3 vs each other */
+      side.r1[0] = ms(bestDiv[0],  wc2,         'D1-1', 'WC2');
+      side.r1[1] = ms(bestDiv[1],  bestDiv[2],  'D1-2', 'D1-3');
+      side.r1[2] = ms(otherDiv[0], wc1,         'D2-1', 'WC1');
+      side.r1[3] = ms(otherDiv[1], otherDiv[2], 'D2-2', 'D2-3');
+    } else {
+      /* Flat fallback: seed 1v8, 2v7, 3v6, 4v5 */
+      const teams = allTeams.slice(0, 8);
+      const [s1,s2,s3,s4,s5,s6,s7,s8] = teams;
+      side.r1[0] = ms(s1, s8||null, '1', '8');
+      side.r1[1] = ms(s2, s7||null, '2', '7');
+      side.r1[2] = ms(s3, s6||null, '3', '6');
+      side.r1[3] = ms(s4, s5||null, '4', '5');
+    }
   }
 
   fillSide(westKey, d.L);
@@ -401,15 +476,21 @@ function buildNBAProjected(standings, year) {
   const confs = {};
   for (const t of standings) {
     const ck = t.confId || t.confName || 'unk';
-    if (!confs[ck]) confs[ck] = { name: t.confName, teams: [] };
+    if (!confs[ck]) confs[ck] = { name: t.confName || '', abbr: t.confAbbr || '', teams: [] };
     confs[ck].teams.push(t);
   }
+  console.log('NBA confs object keys:', Object.keys(confs), Object.values(confs).map(c=>({name:c.name,abbr:c.abbr,count:c.teams.length})));
 
   const confKeys = Object.keys(confs);
   if (confKeys.length < 2) return d;
 
-  const eastKey = confKeys.find(k => /east/i.test(confs[k].name||k)) || confKeys[0];
-  const westKey = confKeys.find(k => /west/i.test(confs[k].name||k)) || confKeys[1];
+  let eastKey = confKeys.find(k => /east/i.test(confs[k].name||'') || /^east$/i.test(confs[k].abbr||''));
+  let westKey = confKeys.find(k => /west/i.test(confs[k].name||'') || /^west$/i.test(confs[k].abbr||''));
+  if (!eastKey && !westKey) { westKey = confKeys[0]; eastKey = confKeys[1]; }
+  else if (!eastKey) { eastKey = confKeys.find(k => k !== westKey) || confKeys[1]; }
+  else if (!westKey) { westKey = confKeys.find(k => k !== eastKey) || confKeys[0]; }
+  if (eastKey === westKey) { eastKey = confKeys[0]; westKey = confKeys[1]; }
+  console.log('NBA conf keys — east:', eastKey, confs[eastKey]?.name, '| west:', westKey, confs[westKey]?.name);
 
   function makeSeries(t1, t2, s1, s2) {
     const isTbd = !t1 || !t2 || (t2 && t2.playIn);
@@ -562,29 +643,43 @@ function buildPlayoffBracket(events, trophy, label) {
      Detect conference from team names, ESPN group data, or event notes.
      If we can split cleanly into two groups of 4, use that.
      Otherwise fall back to first-half / second-half split. */
+  /* Complete conference lookup — every NHL and NBA team mapped to their conference.
+     This is static and never changes mid-season, making it far more reliable
+     than trying to infer conference from ESPN's inconsistent group fields. */
+  const EAST_TEAMS = new Set([
+    /* NHL Eastern Conference */
+    'Boston Bruins','Buffalo Sabres','Detroit Red Wings','Florida Panthers',
+    'Montreal Canadiens','Ottawa Senators','Tampa Bay Lightning','Toronto Maple Leafs',
+    'Carolina Hurricanes','Columbus Blue Jackets','New Jersey Devils','New York Islanders',
+    'New York Rangers','Philadelphia Flyers','Pittsburgh Penguins','Washington Capitals',
+    /* NHL Eastern teams that may use alternate display names */
+    'Bruins','Sabres','Red Wings','Panthers','Canadiens','Senators','Lightning',
+    'Maple Leafs','Hurricanes','Blue Jackets','Devils','Islanders','Rangers',
+    'Flyers','Penguins','Capitals',
+    /* NBA Eastern Conference */
+    'Atlanta Hawks','Boston Celtics','Brooklyn Nets','Charlotte Hornets',
+    'Chicago Bulls','Cleveland Cavaliers','Detroit Pistons','Indiana Pacers',
+    'Miami Heat','Milwaukee Bucks','New York Knicks','Orlando Magic',
+    'Philadelphia 76ers','Toronto Raptors','Washington Wizards',
+  ]);
+
   function getConf(s) {
-    /* Try ESPN home team group abbreviation */
-    const ht = s.homeTeam || {};
-    const at = s.awayTeam || {};
-    const grp = ht.groups?.abbreviation || ht.groups?.parent?.abbreviation
-              || at.groups?.abbreviation || at.groups?.parent?.abbreviation || '';
-    if (/east/i.test(grp)) return 'east';
-    if (/west/i.test(grp)) return 'west';
-    /* Fall back: try conference name patterns in team name (crude but useful) */
-    const eastern = ['Boston','Toronto','New York','Philadelphia','Brooklyn','Cleveland',
-      'Miami','Indiana','Chicago','Milwaukee','Detroit','Atlanta','Charlotte','Orlando',
-      'Washington','Carolina','New Jersey','Pittsburgh','Ottawa','Montreal','Tampa Bay',
-      'Florida','Buffalo'];
-    const isEast = eastern.some(e => s.hName.includes(e) || s.aName.includes(e));
-    return isEast ? 'east' : 'west';
+    /* Check stored conference data from ESPN (most reliable) */
+    if (s.hConf && /east/i.test(s.hConf)) return 'east';
+    if (s.hConf && /west/i.test(s.hConf)) return 'west';
+    if (s.aConf && /east/i.test(s.aConf)) return 'east';
+    if (s.aConf && /west/i.test(s.aConf)) return 'west';
+    /* Fall back to complete team-name lookup */
+    if (EAST_TEAMS.has(s.hName) || EAST_TEAMS.has(s.aName)) return 'east';
+    return 'west';
   }
 
   const eastR1 = r1.filter(s => getConf(s) === 'east');
   const westR1 = r1.filter(s => getConf(s) === 'west');
 
-  /* If conference split didn't work cleanly, just split down the middle */
-  const leftR1  = westR1.length >= 2 ? westR1.slice(0,4) : r1.slice(0,4);
-  const rightR1 = eastR1.length >= 2 ? eastR1.slice(0,4) : r1.slice(4,8);
+  /* Always use detected conference lists. If one side is short, pad with remaining series. */
+  const leftR1  = westR1.length > 0 ? westR1.slice(0,4) : r1.slice(0,4);
+  const rightR1 = eastR1.length > 0 ? eastR1.slice(0,4) : r1.slice(4,8);
 
   /* ── Step 4: helper to convert a series entry into a matchup object ── */
   function makeSeries(s, s1override, s2override) {
@@ -667,47 +762,81 @@ function applyWinnerPromotion(side) {
 async function loadLeague(sport, league, trophy, label) {
   const year = getPlayoffYear();
 
-  /* Step 1: try playoffs */
-  let playoffEvents = [];
-  try {
-    playoffEvents = await fetchPlayoffGames(sport, league);
-  } catch(e) {
-    /* Always re-throw FILE_PROTOCOL so the helpful message shows */
-    if (e.message === 'FILE_PROTOCOL') throw e;
-    /* Other errors (network, 4xx) → fall through to standings */
-    console.warn(league + ' playoff fetch failed:', e.message);
-  }
+  /* Fetch standings and playoff events in parallel */
+  let standings = [], playoffEvents = [];
+  await Promise.all([
+    fetchStandings(sport, league)
+      .then(s => { standings = s; })
+      .catch(e => console.warn(league + ' standings fetch failed:', e.message)),
+    fetchPlayoffGames(sport, league)
+      .then(e => { playoffEvents = e; })
+      .catch(e => console.warn(league + ' playoff fetch failed:', e.message)),
+  ]);
 
-  if (playoffEvents.length > 0) {
-    const d = buildPlayoffBracket(playoffEvents, trophy, label);
-    d.year = year;
-    return d;
-  }
-
-  /* Step 2: regular season — build projected bracket from standings */
-  let standings = [];
-  try {
-    standings = await fetchStandings(sport, league);
-  } catch(e) {
-    if (e.message === 'FILE_PROTOCOL') throw e;
-    console.warn(league + ' standings fetch failed:', e.message);
-  }
-
-  if (standings.length > 0) {
-    const d = league === 'nhl'
+  /* Build the base bracket from standings (always correct team assignment) */
+  const buildBase = () => {
+    if (!standings.length) return null;
+    const b = league === 'nhl'
       ? buildNHLProjected(standings, year)
       : buildNBAProjected(standings, year);
-    d.year = year;
-    return d;
+    b.year = year;
+    return b;
+  };
+
+  if (playoffEvents.length > 0) {
+    const liveBracket = buildPlayoffBracket(playoffEvents, trophy, label);
+    const liveR1Count = liveBracket.L.r1.filter(s=>!s.tbd).length
+                      + liveBracket.R.r1.filter(s=>!s.tbd).length;
+
+    if (liveR1Count >= 8) {
+      /* Full bracket from live data */
+      liveBracket.year = year;
+      return liveBracket;
+    }
+
+    /* Partial — start from standings bracket and overlay live scores */
+    const base = buildBase();
+    if (base) {
+      base.mode = 'playoffs';
+      overlayLiveScores(base, liveBracket);
+      return base;
+    }
+
+    liveBracket.year = year;
+    return liveBracket;
   }
 
-  /* Step 3: genuinely no data (offseason or all fetches failed) */
+  /* No playoff events — regular season or early playoffs with no games yet */
+  const base = buildBase();
+  if (base) return base;
+
+  /* Offseason / no data */
   const d = emptyBracket();
-  d.mode   = 'offseason';
-  d.year   = year;
-  d.trophy = trophy;
-  d.label  = label;
+  d.mode = 'offseason'; d.year = year; d.trophy = trophy; d.label = label;
   return d;
+}
+
+/* Copy live series wins/scores from liveBracket onto matching series in base.
+   Matches by sorted team-name pair so order doesn't matter. */
+function overlayLiveScores(base, live) {
+  function key(m) { return [m.t1,m.t2].filter(t=>t&&t!=='TBD').sort().join('|'); }
+  const liveMap = {};
+  const idx = side => { for (const rd of [side.r1,side.r2,side.cf]) for (const m of rd) if (!m.tbd) liveMap[key(m)]=m; };
+  idx(live.L); idx(live.R);
+  if (!live.final.tbd) liveMap[key(live.final)] = live.final;
+
+  const apply = side => {
+    for (const rd of [side.r1,side.r2,side.cf]) {
+      for (const m of rd) {
+        const lm = liveMap[key(m)];
+        if (lm) { m.w1=lm.w1; m.w2=lm.w2; m.st=lm.st; m.games=lm.games; m.projected=false; }
+      }
+    }
+  };
+  apply(base.L); apply(base.R);
+  const lf = liveMap[key(base.final)];
+  if (lf) { base.final.w1=lf.w1; base.final.w2=lf.w2; base.final.st=lf.st; base.final.games=lf.games; }
+  applyWinnerPromotion(base);
 }
 
 /* ── RENDER ── */
@@ -894,13 +1023,7 @@ async function updateScores() {
       + '  ·  NBA: ' + modeLabel(nbaMode) + ' ' + (D.nba?.year||'');
     setTimeout(()=>{stat.textContent='';},5000);
   } catch(e) {
-    if (e.message === 'FILE_PROTOCOL') {
-      stat.innerHTML = '&#9888; Open via local server, not file://. '
-        + 'In your terminal: <b>python3 -m http.server 8000</b> '
-        + 'then go to <b>http://localhost:8000</b> and open the file.';
-    } else {
-      stat.textContent = 'Fetch failed — check internet connection. (' + e.message + ')';
-    }
+    stat.textContent = 'Fetch failed — check internet connection. (' + e.message + ')';
     render();
   } finally {
     ldr.classList.remove('on');
