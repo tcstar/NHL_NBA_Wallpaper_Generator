@@ -83,6 +83,7 @@ button:hover{background:rgba(255,255,255,0.14);}
 .troph{font-size:16px;line-height:1;}
 
 .rl{font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.16);text-align:center;margin-bottom:1px;white-space:nowrap;flex-shrink:0;}
+.conf-lbl{font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.28);text-align:center;margin-bottom:3px;white-space:nowrap;flex-shrink:0;padding-bottom:3px;border-bottom:1px solid rgba(255,255,255,0.08);}
 
 /* offseason placeholder */
 .offseason-msg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;z-index:3;}
@@ -381,8 +382,8 @@ function buildNHLProjected(standings, year) {
     side.r1[3] = makeSeries(s4, s5||null, '4', '5');
   }
 
-  fillSide(eastKey, d.L);
-  fillSide(westKey, d.R);
+  fillSide(westKey, d.L);
+  fillSide(eastKey, d.R);
   return d;
 }
 
@@ -437,8 +438,8 @@ function buildNBAProjected(standings, year) {
     side.r1[3] = makeSeries(s4, s5,        `${confLetter}4`, `${confLetter}5`);
   }
 
-  fillSide(eastKey, d.L, 'E');
-  fillSide(westKey, d.R, 'W');
+  fillSide(westKey, d.L, 'W');
+  fillSide(eastKey, d.R, 'E');
   return d;
 }
 
@@ -582,8 +583,8 @@ function buildPlayoffBracket(events, trophy, label) {
   const westR1 = r1.filter(s => getConf(s) === 'west');
 
   /* If conference split didn't work cleanly, just split down the middle */
-  const leftR1  = eastR1.length >= 2 ? eastR1.slice(0,4) : r1.slice(0,4);
-  const rightR1 = westR1.length >= 2 ? westR1.slice(0,4) : r1.slice(4,8);
+  const leftR1  = westR1.length >= 2 ? westR1.slice(0,4) : r1.slice(0,4);
+  const rightR1 = eastR1.length >= 2 ? eastR1.slice(0,4) : r1.slice(4,8);
 
   /* ── Step 4: helper to convert a series entry into a matchup object ── */
   function makeSeries(s, s1override, s2override) {
@@ -614,17 +615,17 @@ function buildPlayoffBracket(events, trophy, label) {
 
   const eastR2 = r2.filter(s => getConf(s) === 'east');
   const westR2 = r2.filter(s => getConf(s) === 'west');
-  const leftR2  = eastR2.length >= 1 ? eastR2.slice(0,2) : r2.slice(0,2);
-  const rightR2 = westR2.length >= 1 ? westR2.slice(0,2) : r2.slice(2,4);
+  const leftR2  = westR2.length >= 1 ? westR2.slice(0,2) : r2.slice(0,2);
+  const rightR2 = eastR2.length >= 1 ? eastR2.slice(0,2) : r2.slice(2,4);
   for (let i=0;i<2;i++) { if(leftR2[i])  d.L.r2[i] = makeSeries(leftR2[i]); }
   for (let i=0;i<2;i++) { if(rightR2[i]) d.R.r2[i] = makeSeries(rightR2[i]); }
 
   const eastCF = cf.filter(s => getConf(s) === 'east');
   const westCF = cf.filter(s => getConf(s) === 'west');
-  if (eastCF[0]||cf[0]) d.L.cf[0] = makeSeries(eastCF[0]||cf[0]);
-  if (westCF[0]||cf[1]) d.R.cf[0] = makeSeries(westCF[0]||cf[1]);
+  if (westCF[0]||cf[0]) d.L.cf[0] = makeSeries(westCF[0]||cf[0]);
+  if (eastCF[0]||cf[1]) d.R.cf[0] = makeSeries(eastCF[0]||cf[1]);
 
-  if (fin[0]) d.final = makeSeries(fin[0], 'East', 'West');
+  if (fin[0]) d.final = makeSeries(fin[0], 'West', 'East');
 
   /* Run winner promotion for any completed series */
   applyWinnerPromotion(d);
@@ -797,7 +798,10 @@ function renderHalf(lgKey, brId, titleId, subId, modeId) {
   if (existing) existing.remove();
 
   br.innerHTML = `
-    ${colHTML(d.L.r1,'space-around','Round 1')}
+    <div class="r-col" style="justify-content:space-around">
+      <div class="conf-lbl">Western Conference</div>
+      ${d.L.r1.map(s=>scHTML(s,false)).join('')}
+    </div>
     <div class="g"></div>
     ${colHTML(d.L.r2,'space-around','Round 2')}
     <div class="g"></div>
@@ -813,7 +817,10 @@ function renderHalf(lgKey, brId, titleId, subId, modeId) {
     <div class="g"></div>
     ${colHTML(d.R.r2,'space-around','Round 2')}
     <div class="g"></div>
-    ${colHTML(d.R.r1,'space-around','Round 1')}
+    <div class="r-col" style="justify-content:space-around">
+      <div class="conf-lbl">Eastern Conference</div>
+      ${d.R.r1.map(s=>scHTML(s,false)).join('')}
+    </div>
   `;
 }
 
