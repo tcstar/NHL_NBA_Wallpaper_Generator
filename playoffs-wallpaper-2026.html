@@ -355,8 +355,15 @@ function buildNHLProjected(standings, year) {
   const confKeys = Object.keys(confs);
   if (confKeys.length < 2) return d;
 
-  const eastKey = confKeys.find(k => /east/i.test(confs[k].name||k)) || confKeys[0];
-  const westKey = confKeys.find(k => /west/i.test(confs[k].name||k)) || confKeys[1];
+  /* Find East and West keys — search by name, ensure they are always different keys */
+  let eastKey = confKeys.find(k => /east/i.test(confs[k].name||''));
+  let westKey = confKeys.find(k => /west/i.test(confs[k].name||''));
+  /* Fallback: if regex didn't match, assign by position but guarantee uniqueness */
+  if (!eastKey && !westKey) { westKey = confKeys[0]; eastKey = confKeys[1]; }
+  else if (!eastKey) { eastKey = confKeys.find(k => k !== westKey) || confKeys[1]; }
+  else if (!westKey) { westKey = confKeys.find(k => k !== eastKey) || confKeys[0]; }
+  /* Final safety: if still same, force different */
+  if (eastKey === westKey) { eastKey = confKeys[0]; westKey = confKeys[1]; }
 
   function makeSeries(t1, t2, s1, s2) {
     if (!t1) return {t1:'TBD',s1:s1||'',t2:t2?.name||'TBD',s2:s2||'',w1:0,w2:0,st:'pending',tbd:true,games:[],logo1:null,logo2:t2?.logoUrl||null,projected:true};
@@ -408,8 +415,12 @@ function buildNBAProjected(standings, year) {
   const confKeys = Object.keys(confs);
   if (confKeys.length < 2) return d;
 
-  const eastKey = confKeys.find(k => /east/i.test(confs[k].name||k)) || confKeys[0];
-  const westKey = confKeys.find(k => /west/i.test(confs[k].name||k)) || confKeys[1];
+  let eastKey = confKeys.find(k => /east/i.test(confs[k].name||''));
+  let westKey = confKeys.find(k => /west/i.test(confs[k].name||''));
+  if (!eastKey && !westKey) { westKey = confKeys[0]; eastKey = confKeys[1]; }
+  else if (!eastKey) { eastKey = confKeys.find(k => k !== westKey) || confKeys[1]; }
+  else if (!westKey) { westKey = confKeys.find(k => k !== eastKey) || confKeys[0]; }
+  if (eastKey === westKey) { eastKey = confKeys[0]; westKey = confKeys[1]; }
 
   function makeSeries(t1, t2, s1, s2) {
     const isTbd = !t1 || !t2 || (t2 && t2.playIn);
