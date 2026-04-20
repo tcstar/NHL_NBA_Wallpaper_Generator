@@ -29,7 +29,7 @@ button:hover{background:rgba(255,255,255,0.14);}
 .half-nhl .wm{color:rgba(59,125,216,0.05);}
 .half-nba .wm{color:rgba(212,95,24,0.05);}
 
-.hdr{display:flex;align-items:baseline;gap:10px;padding:6px 20px 2px;position:relative;z-index:2;flex-shrink:0;}
+.hdr{display:flex;align-items:baseline;gap:10px;padding:3px 20px 1px;position:relative;z-index:2;flex-shrink:0;}
 .hdr-name{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;letter-spacing:3px;text-transform:uppercase;}
 .c-nhl{color:#4a90e8;}.c-nba{color:#e8682a;}
 .hdr-sub{font-size:8px;color:rgba(255,255,255,0.25);letter-spacing:2px;text-transform:uppercase;}
@@ -39,12 +39,12 @@ button:hover{background:rgba(255,255,255,0.14);}
 .hdr-mode.offseason{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.35);}
 .hdr-date{margin-left:auto;font-size:8px;color:rgba(255,255,255,0.18);font-family:'Barlow Condensed',sans-serif;}
 
-.bracket{flex:1;min-height:0;display:flex;align-items:stretch;padding:0 20px 2px;position:relative;z-index:2;}
-.r-col{display:flex;flex-direction:column;justify-content:space-around;flex-shrink:0;padding:1px 0;gap:2px;}
+.bracket{flex:1;min-height:0;display:flex;align-items:stretch;padding:0 20px 0;position:relative;z-index:2;overflow:hidden;}
+.r-col{display:flex;flex-direction:column;justify-content:space-around;flex-shrink:0;padding:1px 0;gap:1px;}
 .g{width:9px;flex-shrink:0;}
 .gf{flex:1;min-width:0;}
 
-.sc{width:145px;background:rgba(255,255,255,0.036);border:1px solid rgba(255,255,255,0.07);border-radius:5px;padding:4px 6px 4px;position:relative;flex-shrink:0;display:flex;flex-direction:column;}
+.sc{width:145px;background:rgba(255,255,255,0.036);border:1px solid rgba(255,255,255,0.07);border-radius:5px;padding:2px 5px 2px;position:relative;flex-shrink:0;display:flex;flex-direction:column;}
 .sc.live{border-color:rgba(74,222,128,0.3);}
 .sc.done{border-color:rgba(255,255,255,0.04);}
 .sc.projected{border-color:rgba(245,197,24,0.2);}
@@ -52,13 +52,13 @@ button:hover{background:rgba(255,255,255,0.14);}
 .half-nhl .sc.fin{border-color:rgba(74,144,232,0.3);}
 .half-nba .sc.fin{border-color:rgba(232,104,42,0.3);}
 
-.tr{display:flex;align-items:center;gap:4px;height:19px;}
-.tr img.lg{width:18px;height:18px;object-fit:contain;flex-shrink:0;}
-.lg-fb{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,0.09);display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;color:rgba(255,255,255,0.45);flex-shrink:0;}
+.tr{display:flex;align-items:center;gap:4px;height:17px;}
+.tr img.lg{width:16px;height:16px;object-fit:contain;flex-shrink:0;}
+.lg-fb{width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,0.09);display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;color:rgba(255,255,255,0.45);flex-shrink:0;}
 .t-sd{font-size:7.5px;color:rgba(255,255,255,0.22);width:13px;text-align:right;flex-shrink:0;font-family:'Barlow Condensed',sans-serif;}
-.t-nm{font-size:9.5px;font-weight:600;color:rgba(255,255,255,0.72);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.t-nm{font-size:9px;font-weight:600;color:rgba(255,255,255,0.72);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .t-wn{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:rgba(255,255,255,0.28);width:12px;text-align:center;flex-shrink:0;}
-.sdiv{height:1px;background:rgba(255,255,255,0.065);margin:1px 0;}
+.sdiv{height:1px;background:rgba(255,255,255,0.065);margin:0;}
 
 .tr.lead .t-nm{color:#fff;}.tr.lead .t-wn{color:#f5c518;}
 .tr.elim .t-nm{color:rgba(255,255,255,0.2);text-decoration:line-through;}
@@ -68,14 +68,17 @@ button:hover{background:rgba(255,255,255,0.14);}
 .ss{position:absolute;top:3px;right:5px;font-family:'Barlow Condensed',sans-serif;font-size:7.5px;font-weight:700;letter-spacing:.3px;color:rgba(255,255,255,0.2);}
 .ss.live{color:#4ade80;}.ss.done{color:rgba(255,255,255,0.16);}.ss.proj{color:#f5c518;}
 
-.gl{margin-top:2px;border-top:1px solid rgba(255,255,255,0.06);padding-top:2px;display:flex;flex-direction:column;gap:1px;}
-.gl-row{display:flex;align-items:baseline;gap:2px;font-family:'Barlow Condensed',sans-serif;font-size:7px;color:rgba(255,255,255,0.3);line-height:1.15;white-space:nowrap;overflow:hidden;}
+.gl{margin-top:1px;border-top:1px solid rgba(255,255,255,0.06);padding-top:1px;display:grid;grid-template-columns:1fr 1fr;gap:0px 3px;}
+.gl-row{display:flex;align-items:baseline;gap:2px;font-family:'Barlow Condensed',sans-serif;font-size:6.5px;color:rgba(255,255,255,0.3);line-height:1.1;white-space:nowrap;overflow:hidden;min-width:0;}
 .gl-gn{width:14px;flex-shrink:0;color:rgba(255,255,255,0.15);font-size:6.5px;}
 .gl-sc{flex:1;overflow:hidden;text-overflow:ellipsis;letter-spacing:.1px;}
 .gl-ot{font-size:6px;color:rgba(255,255,255,0.18);flex-shrink:0;}
 .gl-row.glw .gl-sc{color:rgba(255,255,255,0.52);}
 .gl-row.gll .gl-sc{color:rgba(255,255,255,0.25);}
 .gl-row.glv .gl-sc{color:#4ade80;}
+.gl-win{color:rgba(255,255,255,0.75);font-weight:700;}
+.gl-los{color:rgba(255,255,255,0.2);}
+.gl-row.glv .gl-win,.gl-row.glv .gl-los{color:#4ade80;}
 
 .cc{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;flex-shrink:0;width:160px;}
 .cc-lbl{font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:800;letter-spacing:2px;text-transform:uppercase;text-align:center;}
@@ -83,7 +86,7 @@ button:hover{background:rgba(255,255,255,0.14);}
 .troph{font-size:16px;line-height:1;}
 
 .rl{font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.16);text-align:center;margin-bottom:1px;white-space:nowrap;flex-shrink:0;}
-.conf-lbl{font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.28);text-align:center;margin-bottom:3px;white-space:nowrap;flex-shrink:0;padding-bottom:3px;border-bottom:1px solid rgba(255,255,255,0.08);}
+.conf-lbl{font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.28);text-align:center;margin-bottom:2px;white-space:nowrap;flex-shrink:0;padding-bottom:2px;border-bottom:1px solid rgba(255,255,255,0.08);}
 
 /* offseason placeholder */
 .offseason-msg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;z-index:3;}
@@ -193,57 +196,17 @@ function emptyBracket() {
   };
 }
 
-/* ── ESPN API HELPERS ── */
-/* ── ESPN FETCH WITH LOCAL-SERVER DETECTION ──
-   When opened as file://, browsers block all cross-origin requests.
-   The solution is to serve the file from a local web server.
-   This function detects file:// and shows clear instructions instead
-   of silently failing. When served via http://localhost it works fine.
+/* ── ESPN FETCH ──
+   Direct fetch to ESPN's public API. Works from any proper HTTP origin
+   (http://localhost, https://github.io, etc.). Will not work from file://.
 */
-function isLocalFile() {
-  return window.location.protocol === 'file:';
-}
-
-/* ── CLAUDE API RELAY ──
-   Routes an ESPN API URL through the Anthropic API using web_search,
-   which runs server-side and bypasses CORS/file:// restrictions.
-   Returns parsed JSON from the ESPN response.
-*/
-async function espnFetchViaClaude(url) {
-  const prompt = `Fetch this URL and return ONLY the raw JSON response body, nothing else, no markdown, no explanation:
-${url}`;
-  const resp = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 8000,
-      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-      messages: [{ role: 'user', content: prompt }]
-    })
-  });
-  if (!resp.ok) throw new Error('Claude API error: ' + resp.status);
-  const data = await resp.json();
-  const text = (data.content || [])
-    .filter(b => b.type === 'text')
-    .map(b => b.text)
-    .join('');
-  /* Extract JSON from the response */
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error('No JSON in Claude response');
-  return JSON.parse(match[0]);
-}
-
 async function espnFetch(url) {
-  /* Try direct fetch first (works from localhost or GitHub Pages) */
-  if (!isLocalFile()) {
-    try {
-      const r = await fetch(url);
-      if (r.ok) return r.json();
-    } catch(e) { /* fall through to Claude relay */ }
+  if (window.location.protocol === 'file:') {
+    throw new Error('Cannot fetch from file:// — use the Python server: python -m http.server 8000');
   }
-  /* Fall back to Claude API relay (works from file:// and when direct fetch is blocked) */
-  return espnFetchViaClaude(url);
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('ESPN fetch failed (' + r.status + '): ' + url);
+  return r.json();
 }
 
 /* ── PLAYOFF YEAR FROM DATE ──
@@ -817,25 +780,72 @@ async function loadLeague(sport, league, trophy, label) {
 }
 
 /* Copy live series wins/scores from liveBracket onto matching series in base.
-   Matches by sorted team-name pair so order doesn't matter. */
+   Also resolves play-in placeholder slots (tbd2=true) by finding the live
+   series whose known team matches the seed-1..6 team in that slot. */
 function overlayLiveScores(base, live) {
-  function key(m) { return [m.t1,m.t2].filter(t=>t&&t!=='TBD').sort().join('|'); }
-  const liveMap = {};
-  const idx = side => { for (const rd of [side.r1,side.r2,side.cf]) for (const m of rd) if (!m.tbd) liveMap[key(m)]=m; };
-  idx(live.L); idx(live.R);
-  if (!live.final.tbd) liveMap[key(live.final)] = live.final;
+  function key(m) { return [m.t1,m.t2].filter(t=>t&&t!=='TBD'&&!t.startsWith('Play-In')).sort().join('|'); }
+
+  /* Build live series map keyed two ways:
+     1. sorted pair of both real team names (for normal matches)
+     2. single real team name (for resolving play-in slots) */
+  const liveByPair = {};
+  const liveBySeed = {}; /* key = known non-playin team name */
+
+  function indexLive(side) {
+    for (const rd of [side.r1,side.r2,side.cf]) {
+      for (const m of rd) {
+        if (m.tbd) continue;
+        const k = key(m);
+        if (k) liveByPair[k] = m;
+        /* Also index by each team individually for play-in resolution */
+        if (m.t1 && !m.t1.startsWith('Play-In')) liveBySeed[m.t1] = m;
+        if (m.t2 && !m.t2.startsWith('Play-In')) liveBySeed[m.t2] = m;
+      }
+    }
+  }
+  indexLive(live.L); indexLive(live.R);
+  if (!live.final.tbd) liveByPair[key(live.final)] = live.final;
 
   const apply = side => {
     for (const rd of [side.r1,side.r2,side.cf]) {
       for (const m of rd) {
-        const lm = liveMap[key(m)];
-        if (lm) { m.w1=lm.w1; m.w2=lm.w2; m.st=lm.st; m.games=lm.games; m.projected=false; }
+        /* Case 1: normal match — both teams known */
+        if (!m.tbd2) {
+          const lm = liveByPair[key(m)];
+          if (lm) { m.w1=lm.w1; m.w2=lm.w2; m.st=lm.st; m.games=lm.games; m.projected=false; }
+        } else {
+          /* Case 2: play-in slot — t2 is a placeholder, find live series by t1 */
+          const lm = liveBySeed[m.t1];
+          if (lm) {
+            /* Determine which team in the live series is the play-in winner */
+            const playInTeam = lm.t1 === m.t1 ? lm.t2 : lm.t1;
+            const playInLogo = lm.t1 === m.t1 ? lm.logo2 : lm.logo1;
+            m.t2    = playInTeam;
+            m.logo2 = playInLogo || LOGO_CACHE[playInTeam] || null;
+            m.tbd2  = false;
+            m.tbd   = false;
+            m.w1    = lm.w1;
+            m.w2    = lm.w2;
+            m.st    = lm.st;
+            m.games = lm.games;
+            m.projected = false;
+          }
+        }
       }
     }
   };
   apply(base.L); apply(base.R);
-  const lf = liveMap[key(base.final)];
+  const lf = liveByPair[key(base.final)];
   if (lf) { base.final.w1=lf.w1; base.final.w2=lf.w2; base.final.st=lf.st; base.final.games=lf.games; }
+
+  /* Clear projected flag from all series — playoffs are active */
+  const clearProjected = side => {
+    for (const rd of [side.r1, side.r2, side.cf])
+      for (const m of rd) m.projected = false;
+  };
+  clearProjected(base.L); clearProjected(base.R);
+  base.final.projected = false;
+
   applyWinnerPromotion(base);
 }
 
@@ -848,12 +858,27 @@ function modeBadge(mode) {
 
 function gameLogHTML(m) {
   if (!m.games || m.games.length === 0) return '';
-  const rows = m.games.map((g, i) => {
-    const gn  = `G${i+1}`;
-    const cls = g.isLive ? 'gl-row glv' : g.t1Score > g.t2Score ? 'gl-row glw' : 'gl-row gll';
-    const sc  = `${abbr(m.t1)} ${g.t1Score}–${g.t2Score} ${abbr(m.t2)}`;
+  const a1 = abbr(m.t1), a2 = abbr(m.t2);
+  /* Cap at 5 rows — show all games up to 5, or the last 4 + a truncation hint */
+  const MAX = 6;
+  const games = m.games.length > MAX ? m.games.slice(m.games.length - MAX) : m.games;
+  const startIdx = m.games.length > MAX ? m.games.length - MAX : 0;
+  const rows = games.map((g, i) => {
+    const i_real = startIdx + i;
+    const gn  = `G${i_real+1}`;
     const ot  = g.ot ? `<span class="gl-ot">${g.ot}</span>` : '';
-    return `<div class="${cls}"><span class="gl-gn">${gn}</span><span class="gl-sc">${sc}</span>${ot}</div>`;
+    if (g.isLive) {
+      /* Live game — show both in green, no winner yet */
+      const sc = `<span class="gl-sc"><span class="gl-win">${a1}</span> ${g.t1Score}&#x2013;${g.t2Score} <span class="gl-win">${a2}</span></span>`;
+      return `<div class="gl-row glv"><span class="gl-gn">${gn}</span>${sc}${ot}</div>`;
+    }
+    const t1wins = g.t1Score > g.t2Score;
+    const cls = t1wins ? 'gl-row glw' : 'gl-row gll';
+    /* Winner abbr bright, loser abbr dim */
+    const sc = t1wins
+      ? `<span class="gl-sc"><span class="gl-win">${a1}</span> ${g.t1Score}&#x2013;${g.t2Score} <span class="gl-los">${a2}</span></span>`
+      : `<span class="gl-sc"><span class="gl-los">${a1}</span> ${g.t1Score}&#x2013;${g.t2Score} <span class="gl-win">${a2}</span></span>`;
+    return `<div class="${cls}"><span class="gl-gn">${gn}</span>${sc}${ot}</div>`;
   }).join('');
   return `<div class="gl">${rows}</div>`;
 }
@@ -927,7 +952,7 @@ function renderHalf(lgKey, brId, titleId, subId, modeId) {
   if (existing) existing.remove();
 
   br.innerHTML = `
-    <div class="r-col" style="justify-content:space-around">
+    <div class="r-col" style="justify-content:space-evenly">
       <div class="conf-lbl">Western Conference</div>
       ${d.L.r1.map(s=>scHTML(s,false)).join('')}
     </div>
@@ -946,7 +971,7 @@ function renderHalf(lgKey, brId, titleId, subId, modeId) {
     <div class="g"></div>
     ${colHTML(d.R.r2,'space-around','Round 2')}
     <div class="g"></div>
-    <div class="r-col" style="justify-content:space-around">
+    <div class="r-col" style="justify-content:space-evenly">
       <div class="conf-lbl">Eastern Conference</div>
       ${d.R.r1.map(s=>scHTML(s,false)).join('')}
     </div>
