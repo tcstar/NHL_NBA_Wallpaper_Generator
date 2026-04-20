@@ -76,6 +76,9 @@ button:hover{background:rgba(255,255,255,0.14);}
 .gl-row.glw .gl-sc{color:rgba(255,255,255,0.52);}
 .gl-row.gll .gl-sc{color:rgba(255,255,255,0.25);}
 .gl-row.glv .gl-sc{color:#4ade80;}
+.gl-win{color:rgba(255,255,255,0.75);font-weight:700;}
+.gl-los{color:rgba(255,255,255,0.2);}
+.gl-row.glv .gl-win,.gl-row.glv .gl-los{color:#4ade80;}
 
 .cc{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;flex-shrink:0;width:160px;}
 .cc-lbl{font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:800;letter-spacing:2px;text-transform:uppercase;text-align:center;}
@@ -848,12 +851,22 @@ function modeBadge(mode) {
 
 function gameLogHTML(m) {
   if (!m.games || m.games.length === 0) return '';
+  const a1 = abbr(m.t1), a2 = abbr(m.t2);
   const rows = m.games.map((g, i) => {
     const gn  = `G${i+1}`;
-    const cls = g.isLive ? 'gl-row glv' : g.t1Score > g.t2Score ? 'gl-row glw' : 'gl-row gll';
-    const sc  = `${abbr(m.t1)} ${g.t1Score}–${g.t2Score} ${abbr(m.t2)}`;
     const ot  = g.ot ? `<span class="gl-ot">${g.ot}</span>` : '';
-    return `<div class="${cls}"><span class="gl-gn">${gn}</span><span class="gl-sc">${sc}</span>${ot}</div>`;
+    if (g.isLive) {
+      /* Live game — show both in green, no winner yet */
+      const sc = `<span class="gl-sc"><span class="gl-win">${a1}</span> ${g.t1Score}&#x2013;${g.t2Score} <span class="gl-win">${a2}</span></span>`;
+      return `<div class="gl-row glv"><span class="gl-gn">${gn}</span>${sc}${ot}</div>`;
+    }
+    const t1wins = g.t1Score > g.t2Score;
+    const cls = t1wins ? 'gl-row glw' : 'gl-row gll';
+    /* Winner abbr bright, loser abbr dim */
+    const sc = t1wins
+      ? `<span class="gl-sc"><span class="gl-win">${a1}</span> ${g.t1Score}&#x2013;${g.t2Score} <span class="gl-los">${a2}</span></span>`
+      : `<span class="gl-sc"><span class="gl-los">${a1}</span> ${g.t1Score}&#x2013;${g.t2Score} <span class="gl-win">${a2}</span></span>`;
+    return `<div class="${cls}"><span class="gl-gn">${gn}</span>${sc}${ot}</div>`;
   }).join('');
   return `<div class="gl">${rows}</div>`;
 }
