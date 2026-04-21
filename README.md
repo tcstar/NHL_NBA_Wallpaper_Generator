@@ -6,12 +6,15 @@ A single-file browser app that generates a live, updating desktop wallpaper show
 
 ## Features
 
-- **Full bracket layout** — West on the left, East on the right; Round 1 → Round 2 → Conference Finals → Championship, with the Finals card centered
+- **Full bracket layout** — West on the left, East on the right; Round 1 → Round 2 → Conference Finals → Championship, with the Finals card centered and 30% larger than all other cards
 - **Live scores via ESPN** — pulls real series wins and per-game scores directly from ESPN's public API (no API key required)
 - **Auto winner promotion** — when a team wins a series, they automatically advance into the correct next-round slot
 - **Per-game score log** — each series card shows a compact two-column game-by-game breakdown with the winning team highlighted in each game
+- **Inline win counts** — series wins shown beside each team name; turns gold when a team clinches the series (4 wins); completed series cards dim automatically so active series stand out
 - **NBA play-in aware** — seeds 7 and 8 are automatically resolved from play-in results once the tournament concludes
 - **NHL division-based bracket** — correct R1 format: division winner vs wild card, 2nd vs 3rd within each division
+- **Future round context** — TBD slots in Round 2 and Conference Finals show the seed that will advance (e.g. "Seed W1") before teams are determined
+- **Dynamic season detection** — page title and bracket headers update automatically each season; no file edits needed year to year
 - **Team logos** — all 30+ teams rendered using ESPN's CDN logo URLs
 - **Smart export** — detects your primary monitor's resolution and OS at download time:
   - Exports a JPEG at your screen's exact native resolution
@@ -43,16 +46,16 @@ If you prefer to run the file locally rather than via the hosted link, browsers 
 **Mac / Linux:**
 ```bash
 cd ~/Downloads          # or wherever you saved the file
-python3 -m http.server 8080
+python3 -m http.server 8000
 ```
 
 **Windows (Command Prompt):**
 ```cmd
 cd %USERPROFILE%\Downloads
-python -m http.server 8080
+python -m http.server 8000
 ```
 
-Then open **http://localhost:8080** in your browser and click the file name. Stop the server with `Ctrl+C` when done.
+Then open **http://localhost:8000** in your browser and click the file name. Stop the server with `Ctrl+C` when done.
 
 ---
 
@@ -80,7 +83,7 @@ The file is entirely self-contained HTML/CSS/JS with no build step or dependenci
 
 Score updates call ESPN's unofficial public API. Two endpoints are used per league:
 
-- **Playoff games** — `site.api.espn.com/apis/site/v2/sports/{sport}/{league}/scoreboard?seasontype=3` returns live series results
+- **Playoff games** — `site.api.espn.com/apis/site/v2/sports/{sport}/{league}/scoreboard?seasontype=3&dates=YYYYMMDD-YYYYMMDD` fetches all games from April 1 through today, ensuring the full game-by-game history for every active series is available, not just today's scheduled games
 - **Standings** — `site.web.api.espn.com/apis/v2/sports/{sport}/{league}/standings?level=3` returns the full conference → division → team hierarchy used to build projected brackets
 
 Both endpoints are open, require no authentication, and work directly from the browser when served over HTTP.
@@ -116,9 +119,9 @@ Each matchup card shows one of four states. The icon in the top-right corner mat
 | Icon | State | What you see |
 |---|---|---|
 | ◆ | Projected | Matchup based on current standings — playoffs haven't started yet |
-| (wins shown) | Series in progress | Win counts shown; leading team name and wins highlighted in gold; game log shows results two per row with the winning team bold and bright |
-| ● | Live | A game is happening right now; current game score shown in green |
-| ■ | Final | Series over; eliminated team crossed out; full game log with winner highlighted per game |
+| (no icon) | Series in progress | Win counts shown inline beside each team name; leading team highlighted in white; wins turn gold when a team clinches (4 wins); game log shows results two per row with the winning team bold |
+| ● | Live | A game is currently in progress; live score shown in green |
+| ■ | Final | Series over; eliminated team crossed out; card dimmed; full game log with per-game winner highlighted |
 
 ![Series card states legend](legend-preview.png)
 
