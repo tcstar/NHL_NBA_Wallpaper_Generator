@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>NHL + NBA Playoffs Wallpaper</title>
+<title id="page-title">NHL + NBA Playoffs Wallpaper</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
 
@@ -26,8 +26,8 @@ button:hover{background:rgba(255,255,255,0.14);}
 .half-nba{border-bottom:2px solid #d45f18;}
 
 .wm{position:absolute;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:300px;letter-spacing:-8px;pointer-events:none;user-select:none;top:50%;left:50%;transform:translate(-50%,-50%);white-space:nowrap;z-index:0;}
-.half-nhl .wm{color:rgba(59,125,216,0.05);}
-.half-nba .wm{color:rgba(212,95,24,0.05);}
+.half-nhl .wm{color:rgba(59,125,216,0.10);}
+.half-nba .wm{color:rgba(212,95,24,0.10);}
 
 .hdr{display:flex;align-items:baseline;gap:10px;padding:3px 20px 1px;position:relative;z-index:2;flex-shrink:0;}
 .hdr-name{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;letter-spacing:3px;text-transform:uppercase;}
@@ -47,7 +47,7 @@ button:hover{background:rgba(255,255,255,0.14);}
 
 .sc{width:164px;background:rgba(255,255,255,0.036);border:1px solid rgba(255,255,255,0.07);border-radius:5px;padding:2px 5px 2px;position:relative;flex-shrink:0;display:flex;flex-direction:column;}
 .sc.live{border-color:rgba(74,222,128,0.3);}
-.sc.done{border-color:rgba(255,255,255,0.04);}
+.sc.done{border-color:rgba(255,255,255,0.04);opacity:0.65;}
 .sc.projected{border-color:rgba(245,197,24,0.2);}
 .sc.fin{width:213px;}
 .sc.r1{width:185px;}
@@ -66,7 +66,7 @@ button:hover{background:rgba(255,255,255,0.14);}
 .tr.elim .t-nm{color:rgba(255,255,255,0.2);text-decoration:line-through;}.tr.elim .t-wn{color:rgba(255,255,255,0.15);}
 .tr.winner .t-nm{color:#fff;}.tr.winner .t-wn{color:#f5c518;}
 .tr.elim img.lg,.tr.elim .lg-fb{opacity:0.2;}
-.tr.tbd  .t-nm{color:rgba(255,255,255,0.26);font-style:italic;}
+.tr.tbd  .t-nm{color:rgba(255,255,255,0.22);font-style:italic;font-size:8px;}
 
 .ss{position:absolute;top:3px;right:5px;font-family:'Barlow Condensed',sans-serif;font-size:7.5px;font-weight:700;letter-spacing:.3px;color:rgba(255,255,255,0.2);}
 .ss.live{color:#4ade80;}.ss.done{color:rgba(255,255,255,0.16);}.ss.proj{color:#f5c518;}
@@ -154,6 +154,14 @@ button:hover{background:rgba(255,255,255,0.14);}
 <script>
 document.getElementById('wp-date').textContent =
   new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+/* Dynamic year in page title */
+(function(){ const yr = (new Date().getMonth()+1) >= 10 ? new Date().getFullYear()+1 : new Date().getFullYear();
+  document.getElementById('page-title').textContent = yr + ' NHL + NBA Playoffs Wallpaper'; })();
+/* Set page title dynamically with playoff year */
+(function(){
+  const yr = getPlayoffYear();
+  document.getElementById('page-title').textContent = yr + ' NHL + NBA Playoffs Wallpaper';
+})();
 
 /* ── LOGO HELPER ──
    ESPN CDN logos keyed by ESPN team abbreviation, fetched dynamically.
@@ -166,7 +174,7 @@ function logoUrl(espnAbbr, league) {
   return `https://a.espncdn.com/i/teamlogos/${lg}/500/${espnAbbr.toLowerCase()}.png`;
 }
 function logoEl(name, url, isTbd) {
-  if (isTbd || !name || name === 'TBD') return '<div class="lg-fb">?</div>';
+  if (isTbd || !name || name === 'TBD') return '<div class="lg-fb" style="opacity:0.35">?</div>';
   const ab = name.split(' ').map(w=>w[0]).join('').slice(0,3).toUpperCase();
   const src = url || LOGO_CACHE[name];
   if (!src) return `<div class="lg-fb">${ab}</div>`;
@@ -449,7 +457,6 @@ function buildNBAProjected(standings, year) {
     if (!confs[ck]) confs[ck] = { name: t.confName || '', abbr: t.confAbbr || '', teams: [] };
     confs[ck].teams.push(t);
   }
-  console.log('NBA confs object keys:', Object.keys(confs), Object.values(confs).map(c=>({name:c.name,abbr:c.abbr,count:c.teams.length})));
 
   const confKeys = Object.keys(confs);
   if (confKeys.length < 2) return d;
@@ -460,7 +467,6 @@ function buildNBAProjected(standings, year) {
   else if (!eastKey) { eastKey = confKeys.find(k => k !== westKey) || confKeys[1]; }
   else if (!westKey) { westKey = confKeys.find(k => k !== eastKey) || confKeys[0]; }
   if (eastKey === westKey) { eastKey = confKeys[0]; westKey = confKeys[1]; }
-  console.log('NBA conf keys — east:', eastKey, confs[eastKey]?.name, '| west:', westKey, confs[westKey]?.name);
 
   function makeSeries(t1, t2, s1, s2) {
     const isTbd = !t1 || !t2 || (t2 && t2.playIn);
@@ -746,10 +752,10 @@ async function loadLeague(sport, league, trophy, label) {
   await Promise.all([
     fetchStandings(sport, league)
       .then(s => { standings = s; })
-      .catch(e => console.warn(league + ' standings fetch failed:', e.message)),
+      .catch(e => { /* standings fetch failed silently */ }),
     fetchPlayoffGames(sport, league)
       .then(e => { playoffEvents = e; })
-      .catch(e => console.warn(league + ' playoff fetch failed:', e.message)),
+      .catch(e => { /* playoff fetch failed silently */ }),
   ]);
 
   /* Build the base bracket from standings (always correct team assignment) */
@@ -954,9 +960,9 @@ function scHTML(m, isFin) {
   const cc='sc'+(isFin?' fin':'')+(isProj?' projected':'')+(m.st==='live'?' live':'')+((e1||e2)?' done':'');
   return `<div class="${cc}">
     ${stT?`<span class="ss${stC}">${stT}</span>`:''}
-    <div class="${c1}">${logoEl(m.t1,m.logo1,iT1)}<span class="t-sd">${m.s1}</span><span class="t-nm">${m.t1}</span><span class="t-wn">${(uns||iT1||m.w1===0)?'':m.w1}</span></div>
+    <div class="${c1}">${logoEl(m.t1,m.logo1,iT1)}<span class="t-sd">${m.s1}</span><span class="t-nm">${iT1&&m.s1?'Seed '+m.s1:m.t1}</span><span class="t-wn">${(uns||iT1||m.w1===0)?'':m.w1}</span></div>
     <div class="sdiv"></div>
-    <div class="${c2}">${logoEl(m.t2,m.logo2,iT2)}<span class="t-sd">${m.s2}</span><span class="t-nm">${m.t2}</span><span class="t-wn">${(uns||iT2||m.w2===0)?'':m.w2}</span></div>
+    <div class="${c2}">${logoEl(m.t2,m.logo2,iT2)}<span class="t-sd">${m.s2}</span><span class="t-nm">${iT2&&m.s2?'Seed '+m.s2:m.t2}</span><span class="t-wn">${(uns||iT2||m.w2===0)?'':m.w2}</span></div>
     ${gameLogHTML(m)}
   </div>`;
 }
@@ -1067,14 +1073,7 @@ function drawConn(halfId, cvId, brId) {
 function render() {
   renderHalf('nhl','br-nhl','nhl-title','nhl-sub','nhl-mode-badge');
   renderHalf('nba','br-nba','nba-title','nba-sub','nba-mode-badge');
-  requestAnimationFrame(()=>{
-    const wp = document.getElementById('wp');
-    const saved = wp.style.transform;
-    wp.style.transform = 'none';
-    drawConn('h-nhl','cv-nhl','br-nhl');
-    drawConn('h-nba','cv-nba','br-nba');
-    wp.style.transform = saved;
-  });
+  /* Connectors drawn in renderAndScale after double-rAF for accurate card positions */
 }
 
 /* ── UPDATE ── */
@@ -1086,13 +1085,21 @@ async function updateScores() {
   try {
     ltxt.textContent = 'Fetching NHL data…';
     D.nhl = await loadLeague('hockey','nhl','🏒','Stanley Cup Final');
-    console.log('NHL mode:', D.nhl?.mode, '| R1 L series count:', D.nhl?.L?.r1?.filter(s=>!s.tbd).length, '| R1 R:', D.nhl?.R?.r1?.filter(s=>!s.tbd).length);
     ltxt.textContent = 'Fetching NBA data…';
     D.nba = await loadLeague('basketball','nba','🏀','NBA Finals');
-    console.log('NBA mode:', D.nba?.mode, '| R1 L series count:', D.nba?.L?.r1?.filter(s=>!s.tbd).length, '| R1 R:', D.nba?.R?.r1?.filter(s=>!s.tbd).length);
     render();
-    document.getElementById('f-upd').textContent =
-      'UPDATED ' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}).toUpperCase();
+    const _updatedAt = new Date();
+    function _fmtUpd() {
+      const diff = Math.round((Date.now() - _updatedAt) / 60000);
+      const timeStr = _updatedAt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}).toUpperCase();
+      const dateStr = _updatedAt.toLocaleDateString('en-US',{month:'short',day:'numeric'}).toUpperCase();
+      const ago = diff < 1 ? 'JUST NOW' : diff === 1 ? '1 MIN AGO' : diff + ' MIN AGO';
+      document.getElementById('f-upd').textContent = 'UPDATED ' + dateStr + ' ' + timeStr + ' · ' + ago;
+    }
+    _fmtUpd();
+    /* Update "X min ago" every minute */
+    if (window._updTimer) clearInterval(window._updTimer);
+    window._updTimer = setInterval(_fmtUpd, 60000);
     const nhlMode = D.nhl?.mode || 'offseason';
     const nbaMode = D.nba?.mode || 'offseason';
     const modeLabel = m => m === 'playoffs' ? 'Live Playoffs'
@@ -1220,12 +1227,15 @@ function scaleWP() {
 function renderAndScale() {
   render();
   const wp = document.getElementById('wp');
-  const saved = wp.style.transform;
-  wp.style.transform = 'none';
-  drawConn('h-nhl','cv-nhl','br-nhl');
-  drawConn('h-nba','cv-nba','br-nba');
-  wp.style.transform = saved;
-  scaleWP();
+  /* Double rAF ensures layout is fully painted before measuring card positions */
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const saved = wp.style.transform;
+    wp.style.transform = 'none';
+    drawConn('h-nhl','cv-nhl','br-nhl');
+    drawConn('h-nba','cv-nba','br-nba');
+    wp.style.transform = saved;
+    scaleWP();
+  }));
 }
 
 /* ── INIT ── */
@@ -1240,13 +1250,15 @@ updateButtonLabel();
 updateScores();
 
 window.addEventListener('resize', () => {
-  scaleWP();
   const wp = document.getElementById('wp');
-  const saved = wp.style.transform;
-  wp.style.transform = 'none';
-  drawConn('h-nhl','cv-nhl','br-nhl');
-  drawConn('h-nba','cv-nba','br-nba');
-  wp.style.transform = saved;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const saved = wp.style.transform;
+    wp.style.transform = 'none';
+    drawConn('h-nhl','cv-nhl','br-nhl');
+    drawConn('h-nba','cv-nba','br-nba');
+    wp.style.transform = saved;
+    scaleWP();
+  }));
 });
 </script>
 </body>
