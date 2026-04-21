@@ -302,23 +302,24 @@ async function fetchStandings(sport, league) {
   return entries;
 }
 
-/* Fetch all playoff games.
-   The scoreboard with seasontype=3 can bleed regular-season games during
-   the final days of the regular season. The authoritative signal that an
-   event is a real playoff series game is the presence of a `series` object
-   with wins data on the competition. Regular season games never have this.
-   We fetch with seasontype=3 and filter to only events that have a series.
+/* Fetch all playoff games from the start of playoffs to today.
+   The default scoreboard only returns today/tomorrow's games.
+   Using a date range (April 1 → today) ensures we get all completed
+   games so the per-game score log is populated correctly.
+   We filter to only events with a series object (real playoff games).
 */
 async function fetchPlayoffGames(sport, league) {
-  const j = await espnFetch(
-    `https://site.api.espn.com/apis/site/v2/sports/${sport}/${league}/scoreboard?seasontype=3&limit=200`
-  );
+  const year = getPlayoffYear();
+  /* Build date range: April 1 of playoff year → today */
+  const start = `${year}0401`;
+  const now   = new Date();
+  const end   = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+  const url   = `https://site.api.espn.com/apis/site/v2/sports/${sport}/${league}/scoreboard?seasontype=3&limit=200&dates=${start}-${end}`;
+  const j = await espnFetch(url);
   const events = j.events || [];
-  /* Keep only events where ESPN has attached series/playoff data */
+  /* Keep only events with a series object — these are real playoff games */
   return events.filter(ev => {
-    const comp = ev.competitions?.[0];
-    const series = comp?.series;
-    /* A real playoff game has a series object with competitors that have wins */
+    const series = ev.competitions?.[0]?.series;
     return series && series.competitors && series.competitors.length > 0;
   });
 }
