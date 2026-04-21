@@ -168,6 +168,7 @@ document.getElementById('wp-date').textContent =
    We store logo URLs as we discover them from API responses.
 */
 const LOGO_CACHE = {};
+const ABBR_CACHE = {}; /* displayName → ESPN abbreviation */
 function logoUrl(espnAbbr, league) {
   if (!espnAbbr) return null;
   const lg = league === 'nhl' ? 'nhl' : 'nba';
@@ -184,6 +185,7 @@ function logoEl(name, url, isTbd) {
 /* abbreviation for game log */
 function abbr(name) {
   if (!name) return '???';
+  if (ABBR_CACHE[name]) return ABBR_CACHE[name];
   return name.split(' ').map(w=>w[0]).join('').slice(0,3).toUpperCase();
 }
 
@@ -332,9 +334,20 @@ async function fetchPlayoffGames(sport, league) {
      signal of a real playoff game. Regular season games never have a summary.
      Empty-wins series objects (series.competitors with 0 wins but no summary)
      are regular season games that happen to share the same teams. */
+  /* Two-part filter for real playoff games:
+     1. Must have a series object with a non-empty summary string.
+     2. Must be dated on or after April 15 of the playoff year —
+        this excludes the handful of late regular-season games that ESPN
+        incorrectly tags with playoff series data (e.g. teams that later
+        meet in R1 sometimes get series wins retroactively applied). */
+  const playoffCutoff = new Date(`${year}-04-15T00:00:00Z`).getTime();
   return events.filter(ev => {
     const series = ev.competitions?.[0]?.series;
-    return series && series.summary && series.summary.trim() !== '';
+    const evDate = ev.date ? new Date(ev.date).getTime() : 0;
+    return series
+      && series.summary
+      && series.summary.trim() !== ''
+      && evDate >= playoffCutoff;
   });
 }
 
@@ -486,13 +499,22 @@ function buildNBAProjected(standings, year) {
   }
 
   function fillSide(confKey, side, confLetter) {
-    const teams = confs[confKey].teams.sort((a,b) => b.pct - a.pct);
+    /* Sort by playoff seed (most reliable), fall back to points then pct */
+    const teams = confs[confKey].teams
+      .filter(t => t.name && (t.playoffSeed||0) > 0)
+      .sort((a,b) => (a.playoffSeed||99) - (b.playoffSeed||99)
+                  || (b.points||0) - (a.points||0)
+                  || b.pct - a.pct);
+    /* Seeds 1-6 are direct playoff qualifiers; 7-8 come from play-in */
     const [s1,s2,s3,s4,s5,s6] = teams;
     const playIn8 = { playIn: true };
-    side.r1[0] = makeSeries(s1, playIn8,  `${confLetter}1`, `${confLetter}8`);
-    side.r1[1] = makeSeries(s2, {playIn:true}, `${confLetter}2`, `${confLetter}7`);
-    side.r1[2] = makeSeries(s3, s6,        `${confLetter}3`, `${confLetter}6`);
-    side.r1[3] = makeSeries(s4, s5,        `${confLetter}4`, `${confLetter}5`);
+    /* Standard NBA bracket display order:
+       1 seed at top, 2 seed at bottom (so 1 and 2 converge at conf final)
+       1v8, 4v5, 3v6, 2v7 */
+    side.r1[0] = makeSeries(s1, playIn8,       `${confLetter}1`, `${confLetter}8`);
+    side.r1[1] = makeSeries(s4, s5,            `${confLetter}4`, `${confLetter}5`);
+    side.r1[2] = makeSeries(s3, s6,            `${confLetter}3`, `${confLetter}6`);
+    side.r1[3] = makeSeries(s2, {playIn:true}, `${confLetter}2`, `${confLetter}7`);
   }
 
   fillSide(westKey, d.L, 'W');
@@ -535,6 +557,8 @@ function buildPlayoffBracket(events, trophy, label) {
     const aLogo = away.team?.logos?.[0]?.href || `https://a.espncdn.com/i/teamlogos/${trophy==='🏒'?'nhl':'nba'}/500/${aAbbr.toLowerCase()}.png`;
     LOGO_CACHE[hName] = hLogo;
     LOGO_CACHE[aName] = aLogo;
+    if (hAbbr) ABBR_CACHE[hName] = hAbbr.toUpperCase();
+    if (aAbbr) ABBR_CACHE[aName] = aAbbr.toUpperCase();
 
     /* Conference: from team's groups or from event's notes/groups */
     const hConf = home.team?.groups?.parent?.abbreviation
@@ -585,7 +609,12 @@ function buildPlayoffBracket(events, trophy, label) {
     if (/2OT/i.test(detail)) otLabel='2OT';
     else if (/OT|overtime/i.test(detail)) otLabel='OT';
 
-    if (isDone || isLive) {
+    /* Only record game scores for confirmed postseason games.
+       Regular season games in the date range can also have series data
+       (e.g. final regular season meetings between future playoff opponents).
+       ev.season.type === 3 is the definitive playoff signal. */
+    const isPlayoffGame = ev.season?.type === 3 || ev.season?.slug?.includes('post');
+    if (isPlayoffGame && (isDone || isLive)) {
       entry.games.push({
         homeName: hName, awayName: aName,
         homeScore: parseInt(home.score)||0, awayScore: parseInt(away.score)||0,
@@ -770,16 +799,9 @@ async function loadLeague(sport, league, trophy, label) {
 
   if (playoffEvents.length > 0) {
     const liveBracket = buildPlayoffBracket(playoffEvents, trophy, label);
-    const liveR1Count = liveBracket.L.r1.filter(s=>!s.tbd).length
-                      + liveBracket.R.r1.filter(s=>!s.tbd).length;
 
-    if (liveR1Count >= 8) {
-      /* Full bracket from live data */
-      liveBracket.year = year;
-      return liveBracket;
-    }
-
-    /* Partial — start from standings bracket and overlay live scores */
+    /* Always use standings base + overlay — this guarantees correct seed order
+       and conference placement regardless of how many games have been played. */
     const base = buildBase();
     if (base) {
       base.mode = 'playoffs';
@@ -787,6 +809,7 @@ async function loadLeague(sport, league, trophy, label) {
       return base;
     }
 
+    /* Fallback only if no standings available */
     liveBracket.year = year;
     return liveBracket;
   }
