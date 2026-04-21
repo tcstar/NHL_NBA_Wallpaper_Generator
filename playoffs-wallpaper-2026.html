@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>NHL + NBA Playoffs Wallpaper</title>
+<title id="page-title">NHL + NBA Playoffs Wallpaper</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
 
@@ -26,8 +26,8 @@ button:hover{background:rgba(255,255,255,0.14);}
 .half-nba{border-bottom:2px solid #d45f18;}
 
 .wm{position:absolute;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:300px;letter-spacing:-8px;pointer-events:none;user-select:none;top:50%;left:50%;transform:translate(-50%,-50%);white-space:nowrap;z-index:0;}
-.half-nhl .wm{color:rgba(59,125,216,0.05);}
-.half-nba .wm{color:rgba(212,95,24,0.05);}
+.half-nhl .wm{color:rgba(59,125,216,0.10);}
+.half-nba .wm{color:rgba(212,95,24,0.10);}
 
 .hdr{display:flex;align-items:baseline;gap:10px;padding:3px 20px 1px;position:relative;z-index:2;flex-shrink:0;}
 .hdr-name{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;letter-spacing:3px;text-transform:uppercase;}
@@ -39,16 +39,18 @@ button:hover{background:rgba(255,255,255,0.14);}
 .hdr-mode.offseason{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.35);}
 .hdr-date{margin-left:auto;font-size:8px;color:rgba(255,255,255,0.18);font-family:'Barlow Condensed',sans-serif;}
 
-.bracket{flex:1;min-height:0;display:flex;align-items:stretch;padding:0 20px 0;position:relative;z-index:2;overflow:hidden;}
+.bracket{flex:1;min-height:0;display:flex;align-items:stretch;padding:0 10px 0;position:relative;z-index:2;overflow:hidden;}
 .r-col{display:flex;flex-direction:column;justify-content:space-around;flex-shrink:0;padding:1px 0;gap:1px;}
-.g{width:9px;flex-shrink:0;}
-.gf{flex:1;min-width:0;}
+.r-col.r1 .sc{width:164px;}
+.g{width:10px;flex-shrink:0;}
+.gf{flex:0 0 10px;min-width:0;}
 
-.sc{width:145px;background:rgba(255,255,255,0.036);border:1px solid rgba(255,255,255,0.07);border-radius:5px;padding:2px 5px 2px;position:relative;flex-shrink:0;display:flex;flex-direction:column;}
+.sc{width:164px;background:rgba(255,255,255,0.036);border:1px solid rgba(255,255,255,0.07);border-radius:5px;padding:2px 5px 2px;position:relative;flex-shrink:0;display:flex;flex-direction:column;}
 .sc.live{border-color:rgba(74,222,128,0.3);}
-.sc.done{border-color:rgba(255,255,255,0.04);}
+.sc.done{border-color:rgba(255,255,255,0.04);opacity:0.65;}
 .sc.projected{border-color:rgba(245,197,24,0.2);}
-.sc.fin{width:160px;}
+.sc.fin{width:213px;}
+.sc.r1{width:185px;}
 .half-nhl .sc.fin{border-color:rgba(74,144,232,0.3);}
 .half-nba .sc.fin{border-color:rgba(232,104,42,0.3);}
 
@@ -57,13 +59,14 @@ button:hover{background:rgba(255,255,255,0.14);}
 .lg-fb{width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,0.09);display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;color:rgba(255,255,255,0.45);flex-shrink:0;}
 .t-sd{font-size:7.5px;color:rgba(255,255,255,0.22);width:13px;text-align:right;flex-shrink:0;font-family:'Barlow Condensed',sans-serif;}
 .t-nm{font-size:9px;font-weight:600;color:rgba(255,255,255,0.72);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.t-wn{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:rgba(255,255,255,0.28);width:12px;text-align:center;flex-shrink:0;}
+.t-wn{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:rgba(255,255,255,0.5);margin-left:5px;flex-shrink:0;min-width:10px;}
 .sdiv{height:1px;background:rgba(255,255,255,0.065);margin:0;}
 
-.tr.lead .t-nm{color:#fff;}.tr.lead .t-wn{color:#f5c518;}
-.tr.elim .t-nm{color:rgba(255,255,255,0.2);text-decoration:line-through;}
+.tr.lead .t-nm{color:#fff;}.tr.elim .t-wn{color:rgba(255,255,255,0.15);}
+.tr.elim .t-nm{color:rgba(255,255,255,0.2);text-decoration:line-through;}.tr.elim .t-wn{color:rgba(255,255,255,0.15);}
+.tr.winner .t-nm{color:#fff;}.tr.winner .t-wn{color:#f5c518;}
 .tr.elim img.lg,.tr.elim .lg-fb{opacity:0.2;}
-.tr.tbd  .t-nm{color:rgba(255,255,255,0.26);font-style:italic;}
+.tr.tbd  .t-nm{color:rgba(255,255,255,0.22);font-style:italic;font-size:8px;}
 
 .ss{position:absolute;top:3px;right:5px;font-family:'Barlow Condensed',sans-serif;font-size:7.5px;font-weight:700;letter-spacing:.3px;color:rgba(255,255,255,0.2);}
 .ss.live{color:#4ade80;}.ss.done{color:rgba(255,255,255,0.16);}.ss.proj{color:#f5c518;}
@@ -80,7 +83,7 @@ button:hover{background:rgba(255,255,255,0.14);}
 .gl-los{color:rgba(255,255,255,0.2);}
 .gl-row.glv .gl-win,.gl-row.glv .gl-los{color:#4ade80;}
 
-.cc{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;flex-shrink:0;width:160px;}
+.cc{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;flex-shrink:0;width:213px;}
 .cc-lbl{font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:800;letter-spacing:2px;text-transform:uppercase;text-align:center;}
 .half-nhl .cc-lbl{color:#4a90e8;}.half-nba .cc-lbl{color:#e8682a;}
 .troph{font-size:16px;line-height:1;}
@@ -151,6 +154,14 @@ button:hover{background:rgba(255,255,255,0.14);}
 <script>
 document.getElementById('wp-date').textContent =
   new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+/* Dynamic year in page title */
+(function(){ const yr = (new Date().getMonth()+1) >= 10 ? new Date().getFullYear()+1 : new Date().getFullYear();
+  document.getElementById('page-title').textContent = yr + ' NHL + NBA Playoffs Wallpaper'; })();
+/* Set page title dynamically with playoff year */
+(function(){
+  const yr = getPlayoffYear();
+  document.getElementById('page-title').textContent = yr + ' NHL + NBA Playoffs Wallpaper';
+})();
 
 /* ── LOGO HELPER ──
    ESPN CDN logos keyed by ESPN team abbreviation, fetched dynamically.
@@ -163,7 +174,7 @@ function logoUrl(espnAbbr, league) {
   return `https://a.espncdn.com/i/teamlogos/${lg}/500/${espnAbbr.toLowerCase()}.png`;
 }
 function logoEl(name, url, isTbd) {
-  if (isTbd || !name || name === 'TBD') return '<div class="lg-fb">?</div>';
+  if (isTbd || !name || name === 'TBD') return '<div class="lg-fb" style="opacity:0.35">?</div>';
   const ab = name.split(' ').map(w=>w[0]).join('').slice(0,3).toUpperCase();
   const src = url || LOGO_CACHE[name];
   if (!src) return `<div class="lg-fb">${ab}</div>`;
@@ -302,24 +313,28 @@ async function fetchStandings(sport, league) {
   return entries;
 }
 
-/* Fetch all playoff games.
-   The scoreboard with seasontype=3 can bleed regular-season games during
-   the final days of the regular season. The authoritative signal that an
-   event is a real playoff series game is the presence of a `series` object
-   with wins data on the competition. Regular season games never have this.
-   We fetch with seasontype=3 and filter to only events that have a series.
+/* Fetch all playoff games from the start of playoffs to today.
+   The default scoreboard only returns today/tomorrow's games.
+   Using a date range (April 1 → today) ensures we get all completed
+   games so the per-game score log is populated correctly.
+   We filter to only events with a series object (real playoff games).
 */
 async function fetchPlayoffGames(sport, league) {
-  const j = await espnFetch(
-    `https://site.api.espn.com/apis/site/v2/sports/${sport}/${league}/scoreboard?seasontype=3&limit=200`
-  );
+  const year = getPlayoffYear();
+  /* Build date range: April 1 of playoff year → today */
+  const start = `${year}0401`;
+  const now   = new Date();
+  const end   = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+  const url   = `https://site.api.espn.com/apis/site/v2/sports/${sport}/${league}/scoreboard?seasontype=3&limit=200&dates=${start}-${end}`;
+  const j = await espnFetch(url);
   const events = j.events || [];
-  /* Keep only events where ESPN has attached series/playoff data */
+  /* Keep only events with a non-empty series summary — this is the most reliable
+     signal of a real playoff game. Regular season games never have a summary.
+     Empty-wins series objects (series.competitors with 0 wins but no summary)
+     are regular season games that happen to share the same teams. */
   return events.filter(ev => {
-    const comp = ev.competitions?.[0];
-    const series = comp?.series;
-    /* A real playoff game has a series object with competitors that have wins */
-    return series && series.competitors && series.competitors.length > 0;
+    const series = ev.competitions?.[0]?.series;
+    return series && series.summary && series.summary.trim() !== '';
   });
 }
 
@@ -442,7 +457,6 @@ function buildNBAProjected(standings, year) {
     if (!confs[ck]) confs[ck] = { name: t.confName || '', abbr: t.confAbbr || '', teams: [] };
     confs[ck].teams.push(t);
   }
-  console.log('NBA confs object keys:', Object.keys(confs), Object.values(confs).map(c=>({name:c.name,abbr:c.abbr,count:c.teams.length})));
 
   const confKeys = Object.keys(confs);
   if (confKeys.length < 2) return d;
@@ -453,7 +467,6 @@ function buildNBAProjected(standings, year) {
   else if (!eastKey) { eastKey = confKeys.find(k => k !== westKey) || confKeys[1]; }
   else if (!westKey) { westKey = confKeys.find(k => k !== eastKey) || confKeys[0]; }
   if (eastKey === westKey) { eastKey = confKeys[0]; westKey = confKeys[1]; }
-  console.log('NBA conf keys — east:', eastKey, confs[eastKey]?.name, '| west:', westKey, confs[westKey]?.name);
 
   function makeSeries(t1, t2, s1, s2) {
     const isTbd = !t1 || !t2 || (t2 && t2.playIn);
@@ -552,10 +565,16 @@ function buildPlayoffBracket(events, trophy, label) {
     entry.logos[hName] = hLogo;
     entry.logos[aName] = aLogo;
 
-    /* Series wins from the ESPN series object */
+    /* Series wins from the ESPN series object.
+       series.competitors only has { id, wins } — no team object.
+       Match by id against competition.competitors to get the team name. */
     if (comp.series?.competitors) {
+      const idToName = {};
+      for (const cc of comps) {
+        if (cc.id && cc.team) idToName[cc.id] = cc.team.displayName || cc.team.name || '';
+      }
       for (const sc of comp.series.competitors) {
-        const nm = sc.team?.displayName || sc.team?.name;
+        const nm = idToName[sc.id] || sc.team?.displayName || sc.team?.name;
         if (nm) entry.winsMap[nm] = Math.max(entry.winsMap[nm]||0, parseInt(sc.wins)||0);
       }
     }
@@ -688,6 +707,9 @@ function buildPlayoffBracket(events, trophy, label) {
   /* Run winner promotion for any completed series */
   applyWinnerPromotion(d);
 
+  /* Attach raw seriesMap so overlayLiveScores can use it directly */
+  d._seriesMap = seriesMap;
+
   return d;
 }
 
@@ -730,10 +752,10 @@ async function loadLeague(sport, league, trophy, label) {
   await Promise.all([
     fetchStandings(sport, league)
       .then(s => { standings = s; })
-      .catch(e => console.warn(league + ' standings fetch failed:', e.message)),
+      .catch(e => { /* standings fetch failed silently */ }),
     fetchPlayoffGames(sport, league)
       .then(e => { playoffEvents = e; })
-      .catch(e => console.warn(league + ' playoff fetch failed:', e.message)),
+      .catch(e => { /* playoff fetch failed silently */ }),
   ]);
 
   /* Build the base bracket from standings (always correct team assignment) */
@@ -785,26 +807,46 @@ async function loadLeague(sport, league, trophy, label) {
 function overlayLiveScores(base, live) {
   function key(m) { return [m.t1,m.t2].filter(t=>t&&t!=='TBD'&&!t.startsWith('Play-In')).sort().join('|'); }
 
-  /* Build live series map keyed two ways:
-     1. sorted pair of both real team names (for normal matches)
-     2. single real team name (for resolving play-in slots) */
-  const liveByPair = {};
-  const liveBySeed = {}; /* key = known non-playin team name */
+  /* Use _seriesMap directly from buildPlayoffBracket — this contains ALL
+     series regardless of whether they appeared in today's bracket slots. */
+  const rawMap = live._seriesMap || {};
 
+  /* Build liveByPair from the raw seriesMap (keyed by sorted team names) */
+  const liveByPair = {};
+  const liveBySeed = {};
+
+  for (const [rawKey, entry] of Object.entries(rawMap)) {
+    /* rawKey is already sorted "TEAMA|TEAMB" */
+    /* Convert seriesMap entry to a matchup-like object for the overlay */
+    /* Store the raw winsMap and logos — wins will be oriented
+       to match the base bracket's t1/t2 order during apply() */
+    const lm = {
+      _winsMap: entry.winsMap,
+      _logos:   entry.logos,
+      _games:   entry.games,
+      _hName:   entry.hName,
+      _aName:   entry.aName,
+      isLive:   entry.isLive,
+    };
+    liveByPair[rawKey] = lm;
+    if (entry.hName) liveBySeed[entry.hName] = lm;
+    if (entry.aName) liveBySeed[entry.aName] = lm;
+  }
+
+  /* Also index from bracket slots as fallback */
   function indexLive(side) {
     for (const rd of [side.r1,side.r2,side.cf]) {
       for (const m of rd) {
         if (m.tbd) continue;
         const k = key(m);
-        if (k) liveByPair[k] = m;
-        /* Also index by each team individually for play-in resolution */
-        if (m.t1 && !m.t1.startsWith('Play-In')) liveBySeed[m.t1] = m;
-        if (m.t2 && !m.t2.startsWith('Play-In')) liveBySeed[m.t2] = m;
+        if (k && !liveByPair[k]) liveByPair[k] = m;
+        if (m.t1 && !m.t1.startsWith('Play-In') && !liveBySeed[m.t1]) liveBySeed[m.t1] = m;
+        if (m.t2 && !m.t2.startsWith('Play-In') && !liveBySeed[m.t2]) liveBySeed[m.t2] = m;
       }
     }
   }
   indexLive(live.L); indexLive(live.R);
-  if (!live.final.tbd) liveByPair[key(live.final)] = live.final;
+  if (!live.final.tbd) { const k=key(live.final); if(k&&!liveByPair[k]) liveByPair[k]=live.final; }
 
   const apply = side => {
     for (const rd of [side.r1,side.r2,side.cf]) {
@@ -812,22 +854,41 @@ function overlayLiveScores(base, live) {
         /* Case 1: normal match — both teams known */
         if (!m.tbd2) {
           const lm = liveByPair[key(m)];
-          if (lm) { m.w1=lm.w1; m.w2=lm.w2; m.st=lm.st; m.games=lm.games; m.projected=false; }
+          if (lm && lm._winsMap) {
+            /* Orient wins to match base bracket's t1/t2 — NOT hName/aName */
+            m.w1 = lm._winsMap[m.t1] || 0;
+            m.w2 = lm._winsMap[m.t2] || 0;
+            const anyWin = m.w1>0 || m.w2>0;
+            m.st = lm.isLive ? 'live' : (m.w1===4||m.w2===4) ? 'done' : anyWin ? 'pending' : 'pending';
+            /* Orient game scores to t1/t2 */
+            m.games = lm._games.map(g => ({
+              t1Score: g.homeName===m.t1 ? g.homeScore : g.awayScore,
+              t2Score: g.homeName===m.t1 ? g.awayScore : g.homeScore,
+              isLive: g.isLive, ot: g.otLabel,
+            }));
+            if (!m.logo1) m.logo1 = lm._logos[m.t1]||null;
+            if (!m.logo2) m.logo2 = lm._logos[m.t2]||null;
+            m.projected = false;
+          }
         } else {
           /* Case 2: play-in slot — t2 is a placeholder, find live series by t1 */
           const lm = liveBySeed[m.t1];
-          if (lm) {
-            /* Determine which team in the live series is the play-in winner */
-            const playInTeam = lm.t1 === m.t1 ? lm.t2 : lm.t1;
-            const playInLogo = lm.t1 === m.t1 ? lm.logo2 : lm.logo1;
+          if (lm && lm._winsMap) {
+            /* Determine which team is the play-in winner (not m.t1) */
+            const playInTeam = lm._hName === m.t1 ? lm._aName : lm._hName;
             m.t2    = playInTeam;
-            m.logo2 = playInLogo || LOGO_CACHE[playInTeam] || null;
+            m.logo2 = lm._logos[playInTeam] || LOGO_CACHE[playInTeam] || null;
             m.tbd2  = false;
             m.tbd   = false;
-            m.w1    = lm.w1;
-            m.w2    = lm.w2;
-            m.st    = lm.st;
-            m.games = lm.games;
+            m.w1    = lm._winsMap[m.t1]    || 0;
+            m.w2    = lm._winsMap[playInTeam] || 0;
+            const anyWin = m.w1>0 || m.w2>0;
+            m.st    = lm.isLive ? 'live' : (m.w1===4||m.w2===4) ? 'done' : anyWin ? 'pending' : 'pending';
+            m.games = lm._games.map(g => ({
+              t1Score: g.homeName===m.t1 ? g.homeScore : g.awayScore,
+              t2Score: g.homeName===m.t1 ? g.awayScore : g.homeScore,
+              isLive: g.isLive, ot: g.otLabel,
+            }));
             m.projected = false;
           }
         }
@@ -886,23 +947,22 @@ function gameLogHTML(m) {
 function scHTML(m, isFin) {
   const e1=m.w2===4,e2=m.w1===4;
   const l1=m.w1>m.w2&&!e1, l2=m.w2>m.w1&&!e2;
-  const uns=m.w1===0&&m.w2===0&&m.st==='pending';
+  const uns=m.w1===0&&m.w2===0&&m.st==='pending'&&(!m.games||m.games.length===0);
   const iT1=!!(m.tbd||m.tbd1), iT2=!!(m.tbd||m.tbd2);
   const isProj = !!(m.projected);
   let stT, stC;
   if (m.st==='live')      { stT='&#9679;';          stC=' live'; }
-  else if (e1||e2)        { stT=`${m.w1}&#x2013;${m.w2} &#9632;`; stC=' done'; }
+  else if (e1||e2)        { stT='&#9632;'; stC=' done'; }
   else if (uns&&isProj)   { stT='&#9670;';           stC=' proj'; }
-  else if (uns)           { stT='';                  stC=''; }
-  else                    { stT=`${m.w1}&#x2013;${m.w2}`; stC=''; }
-  const c1=e1?'tr elim':l1?'tr lead':iT1?'tr tbd':'tr';
-  const c2=e2?'tr elim':l2?'tr lead':iT2?'tr tbd':'tr';
+  else                    { stT='';                  stC=''; }
+  const c1=e1?'tr elim':e2?'tr winner':l1?'tr lead':iT1?'tr tbd':'tr';
+  const c2=e2?'tr elim':e1?'tr winner':l2?'tr lead':iT2?'tr tbd':'tr';
   const cc='sc'+(isFin?' fin':'')+(isProj?' projected':'')+(m.st==='live'?' live':'')+((e1||e2)?' done':'');
   return `<div class="${cc}">
     ${stT?`<span class="ss${stC}">${stT}</span>`:''}
-    <div class="${c1}">${logoEl(m.t1,m.logo1,iT1)}<span class="t-sd">${m.s1}</span><span class="t-nm">${m.t1}</span><span class="t-wn">${uns||iT1?'':m.w1}</span></div>
+    <div class="${c1}">${logoEl(m.t1,m.logo1,iT1)}<span class="t-sd">${m.s1}</span><span class="t-nm">${iT1&&m.s1?'Seed '+m.s1:m.t1}</span><span class="t-wn">${(uns||iT1||m.w1===0)?'':m.w1}</span></div>
     <div class="sdiv"></div>
-    <div class="${c2}">${logoEl(m.t2,m.logo2,iT2)}<span class="t-sd">${m.s2}</span><span class="t-nm">${m.t2}</span><span class="t-wn">${uns||iT2?'':m.w2}</span></div>
+    <div class="${c2}">${logoEl(m.t2,m.logo2,iT2)}<span class="t-sd">${m.s2}</span><span class="t-nm">${iT2&&m.s2?'Seed '+m.s2:m.t2}</span><span class="t-wn">${(uns||iT2||m.w2===0)?'':m.w2}</span></div>
     ${gameLogHTML(m)}
   </div>`;
 }
@@ -952,7 +1012,7 @@ function renderHalf(lgKey, brId, titleId, subId, modeId) {
   if (existing) existing.remove();
 
   br.innerHTML = `
-    <div class="r-col" style="justify-content:space-evenly">
+    <div class="r-col r1" style="justify-content:space-evenly">
       <div class="conf-lbl">Western Conference</div>
       ${d.L.r1.map(s=>scHTML(s,false)).join('')}
     </div>
@@ -971,7 +1031,7 @@ function renderHalf(lgKey, brId, titleId, subId, modeId) {
     <div class="g"></div>
     ${colHTML(d.R.r2,'space-around','Round 2')}
     <div class="g"></div>
-    <div class="r-col" style="justify-content:space-evenly">
+    <div class="r-col r1" style="justify-content:space-evenly">
       <div class="conf-lbl">Eastern Conference</div>
       ${d.R.r1.map(s=>scHTML(s,false)).join('')}
     </div>
@@ -1013,14 +1073,7 @@ function drawConn(halfId, cvId, brId) {
 function render() {
   renderHalf('nhl','br-nhl','nhl-title','nhl-sub','nhl-mode-badge');
   renderHalf('nba','br-nba','nba-title','nba-sub','nba-mode-badge');
-  requestAnimationFrame(()=>{
-    const wp = document.getElementById('wp');
-    const saved = wp.style.transform;
-    wp.style.transform = 'none';
-    drawConn('h-nhl','cv-nhl','br-nhl');
-    drawConn('h-nba','cv-nba','br-nba');
-    wp.style.transform = saved;
-  });
+  /* Connectors drawn in renderAndScale after double-rAF for accurate card positions */
 }
 
 /* ── UPDATE ── */
@@ -1032,13 +1085,21 @@ async function updateScores() {
   try {
     ltxt.textContent = 'Fetching NHL data…';
     D.nhl = await loadLeague('hockey','nhl','🏒','Stanley Cup Final');
-    console.log('NHL mode:', D.nhl?.mode, '| R1 L series count:', D.nhl?.L?.r1?.filter(s=>!s.tbd).length, '| R1 R:', D.nhl?.R?.r1?.filter(s=>!s.tbd).length);
     ltxt.textContent = 'Fetching NBA data…';
     D.nba = await loadLeague('basketball','nba','🏀','NBA Finals');
-    console.log('NBA mode:', D.nba?.mode, '| R1 L series count:', D.nba?.L?.r1?.filter(s=>!s.tbd).length, '| R1 R:', D.nba?.R?.r1?.filter(s=>!s.tbd).length);
     render();
-    document.getElementById('f-upd').textContent =
-      'UPDATED ' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}).toUpperCase();
+    const _updatedAt = new Date();
+    function _fmtUpd() {
+      const diff = Math.round((Date.now() - _updatedAt) / 60000);
+      const timeStr = _updatedAt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}).toUpperCase();
+      const dateStr = _updatedAt.toLocaleDateString('en-US',{month:'short',day:'numeric'}).toUpperCase();
+      const ago = diff < 1 ? 'JUST NOW' : diff === 1 ? '1 MIN AGO' : diff + ' MIN AGO';
+      document.getElementById('f-upd').textContent = 'UPDATED ' + dateStr + ' ' + timeStr + ' · ' + ago;
+    }
+    _fmtUpd();
+    /* Update "X min ago" every minute */
+    if (window._updTimer) clearInterval(window._updTimer);
+    window._updTimer = setInterval(_fmtUpd, 60000);
     const nhlMode = D.nhl?.mode || 'offseason';
     const nbaMode = D.nba?.mode || 'offseason';
     const modeLabel = m => m === 'playoffs' ? 'Live Playoffs'
@@ -1166,12 +1227,15 @@ function scaleWP() {
 function renderAndScale() {
   render();
   const wp = document.getElementById('wp');
-  const saved = wp.style.transform;
-  wp.style.transform = 'none';
-  drawConn('h-nhl','cv-nhl','br-nhl');
-  drawConn('h-nba','cv-nba','br-nba');
-  wp.style.transform = saved;
-  scaleWP();
+  /* Double rAF ensures layout is fully painted before measuring card positions */
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const saved = wp.style.transform;
+    wp.style.transform = 'none';
+    drawConn('h-nhl','cv-nhl','br-nhl');
+    drawConn('h-nba','cv-nba','br-nba');
+    wp.style.transform = saved;
+    scaleWP();
+  }));
 }
 
 /* ── INIT ── */
@@ -1186,13 +1250,15 @@ updateButtonLabel();
 updateScores();
 
 window.addEventListener('resize', () => {
-  scaleWP();
   const wp = document.getElementById('wp');
-  const saved = wp.style.transform;
-  wp.style.transform = 'none';
-  drawConn('h-nhl','cv-nhl','br-nhl');
-  drawConn('h-nba','cv-nba','br-nba');
-  wp.style.transform = saved;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const saved = wp.style.transform;
+    wp.style.transform = 'none';
+    drawConn('h-nhl','cv-nhl','br-nhl');
+    drawConn('h-nba','cv-nba','br-nba');
+    wp.style.transform = saved;
+    scaleWP();
+  }));
 });
 </script>
 </body>
