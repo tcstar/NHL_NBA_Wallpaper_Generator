@@ -88,7 +88,9 @@ Score updates call ESPN's unofficial public API. Two endpoints are used per leag
 
 Both endpoints are open, require no authentication, and work directly from the browser when served over HTTP.
 
-The app always builds the bracket from standings first (ensuring correct conference and division placement), then overlays live game scores on top. This means all 8 R1 series appear correctly from Day 1 of the playoffs, even if not all series have started yet.
+The app always builds the bracket from standings first (ensuring correct seed order and conference placement), then overlays live game scores on top. This means all 8 R1 series appear correctly from Day 1 of the playoffs even if not all series have started yet.
+
+Each time you click **Update**, the playoff scoreboard is fetched for the full date range from April 1 through today — this is what populates the per-game score log for every completed game in each series. Scores do not update automatically; clicking Update is required to refresh results.
 
 ---
 
@@ -106,9 +108,9 @@ Each half flows left to right:
 West R1 → West R2 → West CF → [Championship] ← East CF ← East R2 ← East R1
 ```
 
-NHL R1 uses the division-based format: best division winner vs WC2, 2nd vs 3rd within that division, other division winner vs WC1, and 2nd vs 3rd within that division.
+NHL R1 uses the division-based format: best division winner vs WC2, 2nd vs 3rd within that division, other division winner vs WC1, and 2nd vs 3rd within that division. The best division winner (most points) appears at the top of the bracket.
 
-NBA R1 uses seeds 1–8 per conference. Seeds 7 and 8 are determined by the play-in tournament and are resolved automatically once those results are available.
+NBA R1 uses seeds 1–8 per conference. Seeds 7 and 8 are determined by the play-in tournament and are resolved automatically once those results are available. The bracket follows the standard NBA display order — 1 seed at top, 4v5 second, 3v6 third, 2 seed at bottom — so the 1 and 2 seeds converge at the Conference Finals rather than meeting earlier.
 
 ---
 
@@ -122,6 +124,8 @@ Each matchup card shows one of four states. The icon in the top-right corner mat
 | (no icon) | Series in progress | Win counts shown inline beside each team name; leading team highlighted in white; wins turn gold when a team clinches (4 wins); game log shows results two per row with the winning team bold |
 | ● | Live | A game is currently in progress; live score shown in green |
 | ■ | Final | Series over; eliminated team crossed out; card dimmed; full game log with per-game winner highlighted |
+
+Game scores in the log use ESPN's official team abbreviations (e.g. `OKC`, `ORL`, `SA`) rather than auto-generated initials.
 
 ![Series card states legend](legend-preview.png)
 
