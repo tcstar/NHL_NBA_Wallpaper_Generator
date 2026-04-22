@@ -31,6 +31,7 @@ button:hover{background:rgba(255,255,255,0.14);}
 .h-date{margin-left:auto;font-size:10px;color:rgba(255,255,255,.22);font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;}
 
 .legend{padding:0 18px 6px;font-family:'Barlow Condensed',sans-serif;font-size:10px;color:rgba(255,255,255,.22);letter-spacing:.5px;}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
 #bracket{flex:1;display:flex;align-items:stretch;padding:0 10px 10px;overflow:hidden;position:relative;z-index:2;}
 .r-col{display:flex;flex-direction:column;justify-content:space-around;gap:2px;min-width:166px;}
 .r-col.r1{min-width:190px;}
@@ -101,7 +102,10 @@ button:hover{background:rgba(255,255,255,0.14);}
     <div class="h-sub" id="h-sub">Select league and season</div>
     <div class="h-date" id="h-date"></div>
   </div>
-  <div class="legend">● Live&nbsp;&nbsp;■ Final&nbsp;&nbsp;◆ Projected/TBD</div>
+  <div class="legend" aria-label="Legend: circle means live, square means final, diamond means projected or tbd">
+    ● Live&nbsp;&nbsp;■ Final&nbsp;&nbsp;◆ Projected/TBD
+    <span class="sr-only">Legend: circle is live, square is final, diamond is projected or TBD.</span>
+  </div>
   <div id="bracket"></div>
   <div id="foot"><span id="f-upd">Not yet updated</span><span>Data source: ESPN public API</span></div>
 </div></div>
@@ -136,6 +140,14 @@ const LEAGUES = {
 
 const LOGO_CACHE = {};
 let CURRENT = null;
+const STATUS_MESSAGE_DURATION = 4500;
+
+const ROUND_TEXT_MAP = [
+  { round: 4, terms: ['super bowl','world series','final'] },
+  { round: 3, terms: ['conference championship','conference final','league championship','championship'] },
+  { round: 2, terms: ['divisional','division series','semi','quarterfinal','round 2'] },
+  { round: 1, terms: ['wild card','first round','round 1','play-in'] },
+];
 
 function todayStr() {
   return new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
@@ -164,7 +176,8 @@ function logoEl(name, isTbd) {
   const ab = name.split(' ').map(w=>w[0]).join('').slice(0,3).toUpperCase();
   const src = LOGO_CACHE[name];
   if (!src) return `<div class="lg-fb">${ab}</div>`;
-  return `<img src="${src}" alt="${name}" onerror="this.outerHTML='<div class=lg-fb>${ab}</div>'">`;
+  const fallback = encodeURIComponent(`<div class="lg-fb">${ab}</div>`);
+  return `<img src="${src}" alt="${name}" data-fallback="${fallback}" onerror="this.outerHTML=decodeURIComponent(this.dataset.fallback)">`;
 }
 
 function abbr(name) {
@@ -174,6 +187,8 @@ function abbr(name) {
 
 function getDateRange(leagueKey, year) {
   const y = Number(year);
+  /* Date windows cover the full typical playoff period by league.
+     NBA/NHL run Apr-Jun, MLB runs late Sep-Nov, NFL postseason is Jan-Feb. */
   if (leagueKey === 'basketball' || leagueKey === 'hockey') return [`${y}0401`, `${y}0630`];
   if (leagueKey === 'baseball') return [`${y}0920`, `${y}1130`];
   return [`${y}0101`, `${y}0228`];
@@ -205,19 +220,24 @@ function parseRound(comp, ev) {
   const numeric = parseInt(comp.series?.type?.id || comp.type?.id || (ev?.season?.slug||'').match(/round-(\d+)/)?.[1], 10);
   if (!Number.isNaN(numeric) && numeric > 0) return numeric;
 
-  if (txt.includes('super bowl') || txt.includes('final') || txt.includes('world series')) return 4;
-  if (txt.includes('conference championship') || txt.includes('championship') || txt.includes('conference final') || txt.includes('league championship')) return 3;
-  if (txt.includes('divisional') || txt.includes('semi') || txt.includes('quarterfinal') || txt.includes('round 2') || txt.includes('division series')) return 2;
-  if (txt.includes('wild card') || txt.includes('first round') || txt.includes('round 1') || txt.includes('play-in')) return 1;
+  for (const entry of ROUND_TEXT_MAP) {
+    if (entry.terms.some(term => txt.includes(term))) return entry.round;
+  }
 
   return 1;
 }
 
 async function espnFetch(url) {
-  if (window.location.protocol === 'file:') throw new Error('Use a local web server (python -m http.server 8000)');
+  if (window.location.protocol === 'file:') {
+    throw new Error('Browser CORS blocks ESPN requests from file://. Run a local web server (python -m http.server 8000 or npx http-server).');
+  }
   const r = await fetch(url);
   if (!r.ok) throw new Error(`ESPN fetch failed (${r.status})`);
   return r.json();
+}
+
+function fallbackLogoUrl(leagueCode, abbr) {
+  return abbr ? `https://a.espncdn.com/i/teamlogos/${leagueCode}/500/${abbr.toLowerCase()}.png` : '';
 }
 
 async function fetchPostseasonEvents(leagueKey, year) {
@@ -246,8 +266,8 @@ function buildBracket(events, leagueKey, year) {
 
     const hAb = home.team?.abbreviation || '';
     const aAb = away.team?.abbreviation || '';
-    LOGO_CACHE[hName] = home.team?.logos?.[0]?.href || (hAb ? `https://a.espncdn.com/i/teamlogos/${cfg.league}/500/${hAb.toLowerCase()}.png` : '');
-    LOGO_CACHE[aName] = away.team?.logos?.[0]?.href || (aAb ? `https://a.espncdn.com/i/teamlogos/${cfg.league}/500/${aAb.toLowerCase()}.png` : '');
+    LOGO_CACHE[hName] = home.team?.logos?.[0]?.href || fallbackLogoUrl(cfg.league, hAb);
+    LOGO_CACHE[aName] = away.team?.logos?.[0]?.href || fallbackLogoUrl(cfg.league, aAb);
 
     const isLive = comp.status?.type?.state === 'in';
     const isDone = !!comp.status?.type?.completed;
@@ -485,7 +505,7 @@ async function updateBracket() {
     const stamp = new Date();
     document.getElementById('f-upd').textContent = `Updated ${stamp.toLocaleDateString('en-US',{month:'short',day:'numeric'}).toUpperCase()} ${stamp.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}).toUpperCase()}`;
     status.textContent = `✓ ${LEAGUES[league].name} ${year}: ${events.length} playoff games loaded`;
-    setTimeout(()=>{status.textContent='';},4500);
+    setTimeout(()=>{status.textContent='';}, STATUS_MESSAGE_DURATION);
   } catch (e) {
     CURRENT = null;
     renderBracket(null);
