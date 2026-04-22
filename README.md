@@ -10,7 +10,7 @@ A single-file browser app that generates a live, updating desktop wallpaper show
 - **Live scores via ESPN** — pulls real series wins and per-game scores directly from ESPN's public API (no API key required)
 - **Auto winner promotion** — when a team wins a series, they automatically advance into the correct next-round slot
 - **Per-game score log** — each series card shows a compact two-column game-by-game breakdown with the winning team highlighted in each game
-- **Inline win counts** — series wins shown beside each team name; turns gold when a team clinches the series (4 wins); completed series cards dim automatically so active series stand out
+- **Inline win counts** — win counts appear beside each team name as soon as the matchup is confirmed, starting at 0–0; increments as games are won; turns gold on the clinching team at 4 wins; completed series cards dim automatically so active series stand out
 - **NBA play-in aware** — seeds 7 and 8 are automatically resolved from play-in results once the tournament concludes
 - **NHL division-based bracket** — correct R1 format: division winner vs wild card, 2nd vs 3rd within each division
 - **Future round context** — TBD slots in Round 2 and Conference Finals show the seed that will advance (e.g. "Seed W1") before teams are determined
@@ -121,7 +121,7 @@ Each matchup card shows one of four states. The icon in the top-right corner mat
 | Icon | State | What you see |
 |---|---|---|
 | ◆ | Projected | Matchup based on current standings — playoffs haven't started yet |
-| (no icon) | Series in progress | Win counts shown inline beside each team name; leading team highlighted in white; wins turn gold when a team clinches (4 wins); game log shows results two per row with the winning team bold |
+| (no icon) | Series in progress | Win counts shown from the moment both teams are confirmed, starting at 0–0; leading team highlighted in white; clinching team's count turns gold at 4 wins; game log shows results two per row with the winning team bold |
 | ● | Live | A game is currently in progress; live score shown in green |
 | ■ | Final | Series over; eliminated team crossed out; card dimmed; full game log with per-game winner highlighted |
 
