@@ -983,9 +983,9 @@ function scHTML(m, isFin) {
   const cc='sc'+(isFin?' fin':'')+(isProj?' projected':'')+(m.st==='live'?' live':'')+((e1||e2)?' done':'');
   return `<div class="${cc}">
     ${stT?`<span class="ss${stC}">${stT}</span>`:''}
-    <div class="${c1}">${logoEl(m.t1,m.logo1,iT1)}<span class="t-sd">${m.s1}</span><span class="t-nm">${iT1&&m.s1?'Seed '+m.s1:m.t1}</span><span class="t-wn">${(uns||iT1||m.w1===0)?'':m.w1}</span></div>
+    <div class="${c1}">${logoEl(m.t1,m.logo1,iT1)}<span class="t-sd">${m.s1}</span><span class="t-nm">${iT1&&m.s1?'Seed '+m.s1:m.t1}</span><span class="t-wn">${(iT1||(isProj&&uns))?'':m.w1}</span></div>
     <div class="sdiv"></div>
-    <div class="${c2}">${logoEl(m.t2,m.logo2,iT2)}<span class="t-sd">${m.s2}</span><span class="t-nm">${iT2&&m.s2?'Seed '+m.s2:m.t2}</span><span class="t-wn">${(uns||iT2||m.w2===0)?'':m.w2}</span></div>
+    <div class="${c2}">${logoEl(m.t2,m.logo2,iT2)}<span class="t-sd">${m.s2}</span><span class="t-nm">${iT2&&m.s2?'Seed '+m.s2:m.t2}</span><span class="t-wn">${(iT2||(isProj&&uns))?'':m.w2}</span></div>
     ${gameLogHTML(m)}
   </div>`;
 }
