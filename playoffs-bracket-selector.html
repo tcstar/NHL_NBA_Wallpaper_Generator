@@ -182,7 +182,7 @@ function initSelectors() {
 
 function logoEl(name, isTbd) {
   if (isTbd || !name || name === 'TBD') return '<div class="lg-fb">?</div>';
-  const ab = name.split(' ').map(w=>w[0]).join('').slice(0,3).toUpperCase();
+  const ab = name.split(' ').filter(w=>w).map(w=>w[0]).join('').slice(0,3).toUpperCase();
   const safeName = escapeHtml(name);
   const safeAb = escapeHtml(ab);
   const src = LOGO_CACHE[name];
@@ -193,7 +193,7 @@ function logoEl(name, isTbd) {
 
 function abbr(name) {
   if (!name) return '???';
-  return name.split(' ').map(w=>w[0]).join('').slice(0,3).toUpperCase();
+  return name.split(' ').filter(w=>w).map(w=>w[0]).join('').slice(0,3).toUpperCase();
 }
 
 function getDateRange(leagueKey, year) {
@@ -240,7 +240,7 @@ function parseRound(comp, ev) {
 
 async function espnFetch(url) {
   if (window.location.protocol === 'file:') {
-    throw new Error('Browser CORS blocks ESPN requests from file://. Run a local web server (for example, python -m http.server 8000 or npx http-server).');
+    throw new Error('Browser CORS blocks ESPN requests from file://. Please run a local web server, e.g. python -m http.server 8000 or npx http-server.');
   }
   const r = await fetch(url);
   if (!r.ok) throw new Error(`ESPN fetch failed (${r.status})`);
