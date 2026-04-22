@@ -145,6 +145,7 @@ const STATUS_MESSAGE_DURATION = 4500;
 const BRACKET_WIDTH = 1280;
 const BRACKET_HEIGHT = 720;
 const VIEWPORT_MARGIN_FACTOR = 0.93;
+const MAX_GAME_LOG_ROWS = 6;
 
 const ROUND_TEXT_MAP = [
   { round: 4, terms: ['super bowl','world series','final'] },
@@ -203,7 +204,7 @@ function abbr(name) {
 function getDateRange(leagueKey, year) {
   const y = Number(year);
   /* Date windows cover the full typical playoff period by league.
-     NBA/NHL run Apr-Jun, MLB runs late Sep-Nov, NFL postseason runs Jan through early Mar. */
+     NBA/NHL run Apr-Jun, MLB runs late Sep-Nov, NFL postseason runs Jan through early March. */
   if (leagueKey === 'basketball' || leagueKey === 'hockey') return [`${y}0401`, `${y}0630`];
   if (leagueKey === 'baseball') return [`${y}0920`, `${y}1130`];
   return [`${y}0101`, `${y}0301`];
@@ -244,7 +245,7 @@ function parseRound(comp, ev) {
 
 async function espnFetch(url) {
   if (window.location.protocol === 'file:') {
-    throw new Error('Browser security restrictions prevent ESPN requests from file:// pages. Start a local web server from this folder (e.g. python -m http.server 8000 or npx http-server), then open the localhost URL in your browser.');
+    throw new Error('Browser security restrictions prevent ESPN requests from file:// pages. Start a local web server from this folder, then open the localhost URL in your browser (e.g. python -m http.server 8000 or npx http-server).');
   }
   const r = await fetch(url);
   if (!r.ok) throw new Error(`ESPN fetch failed (${r.status})`);
@@ -385,7 +386,8 @@ function buildBracket(events, leagueKey, year) {
     let st = 'pending';
     if (s.isLive) st = 'live';
     else if (w1 > 0 || w2 > 0) st = 'done';
-    const games = (s.games || []).sort((a,b)=>a.date < b.date ? -1 : 1).slice(-6).map(g=>({
+    /* Keep only the latest games so card logs stay readable on compact layout. */
+    const games = (s.games || []).sort((a,b)=>a.date < b.date ? -1 : 1).slice(-MAX_GAME_LOG_ROWS).map(g=>({
       t1Score: g.homeName===s.t1 ? g.homeScore : g.awayScore,
       t2Score: g.homeName===s.t1 ? g.awayScore : g.homeScore,
       isLive: g.isLive
