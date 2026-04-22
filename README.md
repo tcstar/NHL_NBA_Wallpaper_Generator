@@ -26,7 +26,8 @@ A single-file browser app that generates a live, updating desktop wallpaper show
 
 ## Live app
 
-**[Open the wallpaper generator](https://tcstar.github.io/NHL_NBA_Wallpaper_Generator/playoffs-wallpaper-2026.html)** — no download or install required. Works in any modern browser.
+- **[Open the wallpaper generator](https://tcstar.github.io/NHL_NBA_Wallpaper_Generator/playoffs-wallpaper-2026.html)** — no download or install required. Works in any modern browser.
+- **[Open the multi-league bracket selector](https://tcstar.github.io/NHL_NBA_Wallpaper_Generator/playoffs-bracket-selector.html)** — pick MLB, NBA, NHL, or NFL and any season from the current year back 25 years.
 
 ---
 
@@ -36,6 +37,13 @@ A single-file browser app that generates a live, updating desktop wallpaper show
 2. Click **↻ Update** — the bracket loads automatically with the active season data from ESPN
 3. Click **⬇ Download JPEG** — exports at your screen's native resolution (label shows detected size)
 4. Set the downloaded JPEG as your desktop wallpaper using **Fill** mode
+
+### Multi-league bracket selector usage
+
+1. Open the multi-league link above
+2. Choose a **League** (MLB, NBA, NHL, NFL)
+3. Choose a **Year** (current year through 25 seasons back)
+4. Click **↻ Update Bracket** to load the full postseason bracket for that league/year
 
 > **Tip:** Click Update each morning during the playoffs to refresh scores. Winners automatically advance through the bracket as series are decided.
 

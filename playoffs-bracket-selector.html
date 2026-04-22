@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pro Sports Playoff Bracket Selector</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:#111827;}
+body{font-family:'Barlow',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff;}
+.toolbar{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;align-items:center;}
+label{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.7);}
+select,button{height:34px;padding:0 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.08);color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.8px;text-transform:uppercase;}
+select{min-width:160px;}
+button{cursor:pointer;}
+button:hover{background:rgba(255,255,255,0.14);}
+.btn-u{background:#1d4ed8;border-color:#1d4ed8;}
+.btn-u:hover{background:#1e40af;}
+#status{color:rgba(255,255,255,0.5);font-size:11px;min-height:16px;text-align:center;}
+
+#wrap{width:1280px;height:720px;background:#070910;border-radius:8px;position:relative;overflow:hidden;display:flex;flex-direction:column;}
+#ldr{display:none;position:absolute;inset:0;background:rgba(7,9,16,.9);z-index:20;align-items:center;justify-content:center;flex-direction:column;gap:12px;}
+#ldr.on{display:flex;}
+.spin{width:28px;height:28px;border:2px solid rgba(255,255,255,.14);border-top-color:#4a90e8;border-radius:50%;animation:sp .8s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+
+.hdr{padding:10px 18px 6px;display:flex;align-items:center;gap:10px;z-index:2;}
+.h-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;letter-spacing:2px;text-transform:uppercase;}
+.h-sub{font-size:10px;color:rgba(255,255,255,.34);text-transform:uppercase;letter-spacing:1px;}
+.h-date{margin-left:auto;font-size:10px;color:rgba(255,255,255,.22);font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;}
+
+.legend{padding:0 18px 6px;font-family:'Barlow Condensed',sans-serif;font-size:10px;color:rgba(255,255,255,.22);letter-spacing:.5px;}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+#bracket{flex:1;display:flex;align-items:stretch;padding:0 10px 10px;overflow:hidden;position:relative;z-index:2;}
+.r-col{display:flex;flex-direction:column;justify-content:space-around;gap:2px;min-width:166px;}
+.r-col.r1{min-width:190px;}
+.rl{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,255,255,.22);text-align:center;}
+.conf-lbl{font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.3);text-align:center;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.08);}
+.g{width:10px;flex-shrink:0;}
+.gf{width:12px;flex-shrink:0;}
+
+.sc{width:164px;background:rgba(255,255,255,0.036);border:1px solid rgba(255,255,255,0.07);border-radius:5px;padding:3px 5px 2px;position:relative;display:flex;flex-direction:column;}
+.sc.r1{width:186px;}
+.sc.fin{width:224px;}
+.sc.live{border-color:rgba(74,222,128,.35);}
+.sc.done{border-color:rgba(255,255,255,.04);opacity:.72;}
+.sc.projected{border-color:rgba(245,197,24,.25);}
+.tr{display:flex;align-items:center;gap:4px;height:18px;}
+.tr img{width:16px;height:16px;object-fit:contain;}
+.lg-wrap{width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+.lg-fb{width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:rgba(255,255,255,.45);}
+.t-sd{font-size:8px;color:rgba(255,255,255,.25);width:14px;text-align:right;font-family:'Barlow Condensed',sans-serif;}
+.t-nm{font-size:9px;font-weight:600;color:rgba(255,255,255,.76);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.t-wn{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:rgba(255,255,255,.5);margin-left:5px;min-width:10px;}
+.sdiv{height:1px;background:rgba(255,255,255,.07);margin:0;}
+.tr.lead .t-nm{color:#fff;}
+.tr.winner .t-nm{color:#fff;}.tr.winner .t-wn{color:#f5c518;}
+.tr.elim .t-nm{color:rgba(255,255,255,.22);text-decoration:line-through;}
+.tr.elim .t-wn{color:rgba(255,255,255,.15);}
+.tr.tbd .t-nm{color:rgba(255,255,255,.24);font-style:italic;}
+.ss{position:absolute;top:3px;right:5px;font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:700;color:rgba(255,255,255,.2);}
+.ss.live{color:#4ade80;}.ss.done{color:rgba(255,255,255,.16);}.ss.proj{color:#f5c518;}
+
+.gl{margin-top:2px;border-top:1px solid rgba(255,255,255,.06);padding-top:2px;display:grid;grid-template-columns:1fr 1fr;gap:1px 4px;}
+.gl-row{display:flex;align-items:baseline;gap:2px;font-family:'Barlow Condensed',sans-serif;font-size:7px;color:rgba(255,255,255,.3);line-height:1.1;white-space:nowrap;overflow:hidden;}
+.gl-gn{width:14px;flex-shrink:0;color:rgba(255,255,255,.15);}
+.gl-sc{flex:1;overflow:hidden;text-overflow:ellipsis;}
+.gl-win{color:rgba(255,255,255,.76);font-weight:700;}
+.gl-los{color:rgba(255,255,255,.2);}
+.gl-row.glv .gl-win,.gl-row.glv .gl-los{color:#4ade80;}
+
+.cc{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:224px;}
+.cc-lbl{font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:800;letter-spacing:2px;text-transform:uppercase;text-align:center;color:rgba(255,255,255,.45);}
+.troph{font-size:20px;line-height:1;}
+
+#empty{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;z-index:3;}
+#empty.on{display:flex;}
+#empty .e1{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.35);}
+#empty .e2{font-size:11px;letter-spacing:1px;color:rgba(255,255,255,.24);text-transform:uppercase;font-family:'Barlow Condensed',sans-serif;}
+
+#foot{height:24px;padding:0 18px;display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.5);font-family:'Barlow Condensed',sans-serif;font-size:10px;color:rgba(255,255,255,.23);letter-spacing:.3px;}
+
+#wrap-scaler{transform-origin:top left;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <label for="league">League</label>
+  <select id="league"></select>
+  <label for="year">Year</label>
+  <select id="year"></select>
+  <button class="btn-u" onclick="updateBracket()">↻ Update Bracket</button>
+</div>
+<div id="status"></div>
+
+<div id="wrap-scaler"><div id="wrap">
+  <div id="ldr"><div class="spin"></div><div id="ltxt" style="font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;color:rgba(255,255,255,.4)">Loading…</div></div>
+  <div id="empty"><div class="e1">No Bracket Data</div><div class="e2">Try another league or year</div></div>
+
+  <div class="hdr">
+    <div class="h-title" id="h-title">Playoff Bracket</div>
+    <div class="h-sub" id="h-sub">Select league and season</div>
+    <div class="h-date" id="h-date"></div>
+  </div>
+  <div class="legend" aria-label="Legend: circle means live, square means final, diamond means projected or tbd">
+    ● Live&nbsp;&nbsp;■ Final&nbsp;&nbsp;◆ Projected/TBD
+    <span class="sr-only">Legend: circle is live, square is final, diamond is projected or TBD.</span>
+  </div>
+  <div id="bracket"></div>
+  <div id="foot"><span id="f-upd">Not yet updated</span><span>Data source: ESPN public API</span></div>
+</div></div>
+
+<script>
+const LEAGUES = {
+  baseball: {
+    sport: 'baseball', league: 'mlb', name: 'MLB', trophy: '⚾', finals: 'World Series',
+    leftConf: ['AL','AMERICAN LEAGUE'], rightConf: ['NL','NATIONAL LEAGUE'],
+    leftLabel: 'American League', rightLabel: 'National League',
+    roundLabels: ['Wild Card','Division Series','League Championship']
+  },
+  basketball: {
+    sport: 'basketball', league: 'nba', name: 'NBA', trophy: '🏀', finals: 'NBA Finals',
+    leftConf: ['WEST','WESTERN'], rightConf: ['EAST','EASTERN'],
+    leftLabel: 'Western Conference', rightLabel: 'Eastern Conference',
+    roundLabels: ['Round 1','Round 2','Conference Final']
+  },
+  hockey: {
+    sport: 'hockey', league: 'nhl', name: 'NHL', trophy: '🏒', finals: 'Stanley Cup Final',
+    leftConf: ['WEST','WESTERN'], rightConf: ['EAST','EASTERN'],
+    leftLabel: 'Western Conference', rightLabel: 'Eastern Conference',
+    roundLabels: ['Round 1','Round 2','Conference Final']
+  },
+  football: {
+    sport: 'football', league: 'nfl', name: 'NFL', trophy: '🏈', finals: 'Super Bowl',
+    leftConf: ['AFC'], rightConf: ['NFC'],
+    leftLabel: 'AFC', rightLabel: 'NFC',
+    roundLabels: ['Wild Card','Divisional','Conference Championship']
+  }
+};
+
+const LOGO_CACHE = {};
+let CURRENT = null;
+const YEARS_HISTORY = 25;
+const STATUS_MESSAGE_DURATION = 4500;
+const BRACKET_WIDTH = 1280;
+const BRACKET_HEIGHT = 720;
+const VIEWPORT_MARGIN_FACTOR = 0.93;
+const MAX_GAME_LOG_ROWS = 6;
+
+const ROUND_TEXT_MAP = [
+  { round: 4, terms: ['super bowl','world series','final'] },
+  { round: 3, terms: ['conference championship','conference final','league championship','championship'] },
+  { round: 2, terms: ['divisional','division series','semi','quarterfinal','round 2'] },
+  { round: 1, terms: ['wild card','first round','round 1','play-in'] },
+];
+
+function todayStr() {
+  return new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+function initSelectors() {
+  const leagueSel = document.getElementById('league');
+  const yearSel = document.getElementById('year');
+  for (const [k,v] of Object.entries(LEAGUES)) {
+    const o = document.createElement('option');
+    o.value = k; o.textContent = v.name;
+    leagueSel.appendChild(o);
+  }
+  const now = new Date().getFullYear();
+  for (let y = now; y >= now - YEARS_HISTORY; y--) {
+    const o = document.createElement('option');
+    o.value = String(y); o.textContent = String(y);
+    yearSel.appendChild(o);
+  }
+  leagueSel.value = 'hockey';
+  yearSel.value = String(now);
+}
+
+function logoEl(name, isTbd) {
+  if (isTbd || !name || name === 'TBD') return '<div class="lg-fb">?</div>';
+  const ab = name.split(' ').filter(w=>w).map(w=>w[0]).join('').slice(0,3).toUpperCase();
+  const safeName = escapeHtml(name);
+  const safeAb = escapeHtml(ab);
+  const src = LOGO_CACHE[name];
+  if (!src) return `<div class="lg-fb">${safeAb}</div>`;
+  return `<span class="lg-wrap"><img src="${src}" alt="${safeName}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="lg-fb" style="display:none">${safeAb}</div></span>`;
+}
+
+function abbr(name) {
+  if (!name) return '???';
+  return name.split(' ').filter(w=>w).map(w=>w[0]).join('').slice(0,3).toUpperCase();
+}
+
+function getDateRange(leagueKey, year) {
+  const y = Number(year);
+  /* Date windows cover the full typical playoff period by league.
+     NBA/NHL run Apr-Jun, MLB runs late Sep-Nov, NFL postseason runs Jan through early March. */
+  if (leagueKey === 'basketball' || leagueKey === 'hockey') return [`${y}0401`, `${y}0630`];
+  if (leagueKey === 'baseball') return [`${y}0920`, `${y}1130`];
+  return [`${y}0101`, `${y}0301`];
+}
+
+function normalizeConf(raw) {
+  const t = String(raw || '').toUpperCase();
+  if (!t) return '';
+  if (t.includes('WEST')) return 'WEST';
+  if (t.includes('EAST')) return 'EAST';
+  if (t.includes('AFC')) return 'AFC';
+  if (t.includes('NFC')) return 'NFC';
+  if (t === 'AL' || t.includes('AMERICAN')) return 'AL';
+  if (t === 'NL' || t.includes('NATIONAL')) return 'NL';
+  return t;
+}
+
+function parseRound(comp, ev) {
+  const txt = [
+    comp.series?.type?.name,
+    comp.series?.type?.abbreviation,
+    comp.series?.type?.description,
+    comp.type?.name,
+    comp.type?.abbreviation,
+    comp.type?.shortDetail,
+    ev?.season?.slug,
+  ].filter(Boolean).join(' ').toLowerCase();
+
+  const numeric = parseInt(comp.series?.type?.id || comp.type?.id || (ev?.season?.slug||'').match(/round-(\d+)/)?.[1], 10);
+  if (!Number.isNaN(numeric) && numeric > 0) return numeric;
+
+  for (const entry of ROUND_TEXT_MAP) {
+    if (entry.terms.some(term => txt.includes(term))) return entry.round;
+  }
+
+  return 1;
+}
+
+async function espnFetch(url) {
+  if (window.location.protocol === 'file:') {
+    throw new Error('Browser security restrictions prevent ESPN requests from file:// pages. Start a local web server from this folder, then open the localhost URL in your browser (e.g. python -m http.server 8000 or npx http-server).');
+  }
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`ESPN fetch failed (${r.status})`);
+  return r.json();
+}
+
+function fallbackLogoUrl(leagueCode, abbr) {
+  return abbr ? `https://a.espncdn.com/i/teamlogos/${leagueCode}/500/${abbr.toLowerCase()}.png` : '';
+}
+
+async function fetchPostseasonEvents(leagueKey, year) {
+  const cfg = LEAGUES[leagueKey];
+  const [start, end] = getDateRange(leagueKey, year);
+  const url = `https://site.api.espn.com/apis/site/v2/sports/${cfg.sport}/${cfg.league}/scoreboard?seasontype=3&limit=1000&dates=${start}-${end}`;
+  const j = await espnFetch(url);
+  return j.events || [];
+}
+
+function buildBracket(events, leagueKey, year) {
+  const cfg = LEAGUES[leagueKey];
+  const map = {};
+
+  for (const ev of events) {
+    const comp = ev.competitions?.[0];
+    if (!comp) continue;
+    const competitors = comp.competitors || [];
+    if (competitors.length < 2) continue;
+
+    const home = competitors.find(c=>c.homeAway==='home') || competitors[0];
+    const away = competitors.find(c=>c.homeAway==='away') || competitors[1];
+    const hName = home.team?.displayName || home.team?.name || '';
+    const aName = away.team?.displayName || away.team?.name || '';
+    if (!hName || !aName) continue;
+
+    const hAb = home.team?.abbreviation || '';
+    const aAb = away.team?.abbreviation || '';
+    LOGO_CACHE[hName] = home.team?.logos?.[0]?.href || fallbackLogoUrl(cfg.league, hAb);
+    LOGO_CACHE[aName] = away.team?.logos?.[0]?.href || fallbackLogoUrl(cfg.league, aAb);
+
+    const isLive = comp.status?.type?.state === 'in';
+    const isDone = !!comp.status?.type?.completed;
+    const round = parseRound(comp, ev);
+    const conf = normalizeConf(home.team?.groups?.parent?.abbreviation || home.team?.groups?.parent?.name || away.team?.groups?.parent?.abbreviation || away.team?.groups?.parent?.name || '');
+
+    const key = comp.series ? [hName, aName].sort().join('|') : (ev.id || `${hName}|${aName}|${ev.date}`);
+    if (!map[key]) {
+      map[key] = {
+        t1: hName, t2: aName, conf, round,
+        winsMap: {}, games: [], isLive: false,
+        firstDate: ev.date || '',
+        logos: { [hName]: LOGO_CACHE[hName], [aName]: LOGO_CACHE[aName] }
+      };
+    }
+    const s = map[key];
+    s.isLive = s.isLive || isLive;
+    s.round = Math.max(s.round, round);
+    if (ev.date && (!s.firstDate || ev.date < s.firstDate)) s.firstDate = ev.date;
+
+    if (comp.series?.competitors) {
+      const idToName = {};
+      for (const c of competitors) {
+        if (c.id && c.team) idToName[c.id] = c.team.displayName || c.team.name || '';
+      }
+      for (const c of comp.series.competitors) {
+        const nm = idToName[c.id] || c.team?.displayName || c.team?.name;
+        if (nm) s.winsMap[nm] = Math.max(s.winsMap[nm] || 0, parseInt(c.wins,10) || 0);
+      }
+    } else if (isDone || isLive) {
+      const hs = parseInt(home.score,10) || 0;
+      const as = parseInt(away.score,10) || 0;
+      if (isDone && hs !== as) {
+        s.winsMap[hName] = Math.max(s.winsMap[hName] || 0, hs > as ? 1 : 0);
+        s.winsMap[aName] = Math.max(s.winsMap[aName] || 0, as > hs ? 1 : 0);
+      }
+    }
+
+    if (isDone || isLive) {
+      s.games.push({
+        homeName: hName,
+        awayName: aName,
+        homeScore: parseInt(home.score,10) || 0,
+        awayScore: parseInt(away.score,10) || 0,
+        isLive,
+        date: ev.date || ''
+      });
+    }
+  }
+
+  const all = Object.values(map).sort((a,b)=>a.round-b.round || (a.firstDate < b.firstDate ? -1 : 1));
+  if (!all.length) return null;
+
+  const byRound = {1:[],2:[],3:[],4:[]};
+  for (const s of all) {
+    const r = s.round >= 4 ? 4 : Math.max(1,s.round);
+    byRound[r].push(s);
+  }
+
+  function confSide(conf) {
+    const c = normalizeConf(conf);
+    const leftMatches = cfg.leftConf.some(k => c.includes(k));
+    const rightMatches = cfg.rightConf.some(k => c.includes(k));
+    if (leftMatches) return 'L';
+    if (rightMatches) return 'R';
+    return '';
+  }
+
+  const rounds = { L:[[],[],[]], R:[[],[],[]], final:null };
+  const round1 = byRound[1];
+
+  for (const s of round1) {
+    const side = confSide(s.conf);
+    if (side === 'L') rounds.L[0].push(s);
+    else if (side === 'R') rounds.R[0].push(s);
+  }
+
+  const unassignedR1 = round1.filter(s => !confSide(s.conf));
+  for (const s of unassignedR1) {
+    (rounds.L[0].length <= rounds.R[0].length ? rounds.L[0] : rounds.R[0]).push(s);
+  }
+
+  function placeLater(roundIdx, source) {
+    for (const s of source) {
+      const side = confSide(s.conf);
+      if (side === 'L') rounds.L[roundIdx].push(s);
+      else if (side === 'R') rounds.R[roundIdx].push(s);
+      else (rounds.L[roundIdx].length <= rounds.R[roundIdx].length ? rounds.L[roundIdx] : rounds.R[roundIdx]).push(s);
+    }
+  }
+
+  placeLater(1, byRound[2]);
+  placeLater(2, byRound[3]);
+  rounds.final = byRound[4][0] || null;
+
+  function asCard(s, fallbackSeedA, fallbackSeedB) {
+    if (!s) return {t1:'TBD',t2:'TBD',s1:fallbackSeedA||'',s2:fallbackSeedB||'',w1:0,w2:0,st:'pending',games:[],projected:true,tbd:true};
+    const w1 = s.winsMap[s.t1] || 0;
+    const w2 = s.winsMap[s.t2] || 0;
+    let st = 'pending';
+    if (s.isLive) st = 'live';
+    else if (w1 > 0 || w2 > 0) st = 'done';
+    /* Keep only the latest games so card logs stay readable on compact layout. */
+    const games = (s.games || []).sort((a,b)=>String(a.date || '').localeCompare(String(b.date || ''))).slice(-MAX_GAME_LOG_ROWS).map(g=>({
+      t1Score: g.homeName===s.t1 ? g.homeScore : g.awayScore,
+      t2Score: g.homeName===s.t1 ? g.awayScore : g.homeScore,
+      isLive: g.isLive
+    }));
+    return {
+      t1:s.t1,t2:s.t2,s1:fallbackSeedA||'',s2:fallbackSeedB||'',w1,w2,st,games,
+      projected:false,tbd:false,logo1:s.logos[s.t1]||null,logo2:s.logos[s.t2]||null
+    };
+  }
+
+  const leftR1Count = Math.max(2, rounds.L[0].length || 0);
+  const rightR1Count = Math.max(2, rounds.R[0].length || 0);
+  const out = {
+    year,
+    leagueName: cfg.name,
+    finals: cfg.finals,
+    trophy: cfg.trophy,
+    leftLabel: cfg.leftLabel,
+    rightLabel: cfg.rightLabel,
+    roundLabels: cfg.roundLabels,
+    L: [
+      Array.from({length:leftR1Count}, (_,i)=>asCard(rounds.L[0][i])),
+      Array.from({length:Math.max(1,rounds.L[1].length)}, (_,i)=>asCard(rounds.L[1][i])),
+      Array.from({length:1}, (_,i)=>asCard(rounds.L[2][i]))
+    ],
+    R: [
+      Array.from({length:rightR1Count}, (_,i)=>asCard(rounds.R[0][i])),
+      Array.from({length:Math.max(1,rounds.R[1].length)}, (_,i)=>asCard(rounds.R[1][i])),
+      Array.from({length:1}, (_,i)=>asCard(rounds.R[2][i]))
+    ],
+    final: asCard(rounds.final, cfg.leftLabel.split(' ')[0], cfg.rightLabel.split(' ')[0])
+  };
+
+  return out;
+}
+
+function modeIcon(card) {
+  if (card.st === 'live') return ['●','live'];
+  if (card.st === 'done') return ['■','done'];
+  if (card.projected || card.tbd) return ['◆','proj'];
+  return ['',''];
+}
+
+function gameLogHTML(card) {
+  if (!card.games || !card.games.length) return '';
+  const a1 = abbr(card.t1), a2 = abbr(card.t2);
+  const rows = card.games.map((g,i) => {
+    const gn = `G${i+1}`;
+    if (g.isLive) return `<div class="gl-row glv"><span class="gl-gn">${gn}</span><span class="gl-sc"><span class="gl-win">${a1}</span> ${g.t1Score}-${g.t2Score} <span class="gl-win">${a2}</span></span></div>`;
+    const t1w = g.t1Score > g.t2Score;
+    const sc = t1w
+      ? `<span class="gl-sc"><span class="gl-win">${a1}</span> ${g.t1Score}-${g.t2Score} <span class="gl-los">${a2}</span></span>`
+      : `<span class="gl-sc"><span class="gl-los">${a1}</span> ${g.t1Score}-${g.t2Score} <span class="gl-win">${a2}</span></span>`;
+    return `<div class="gl-row"><span class="gl-gn">${gn}</span>${sc}</div>`;
+  }).join('');
+  return `<div class="gl">${rows}</div>`;
+}
+
+function scHTML(card, isFin=false, isR1=false) {
+  const [icon, cls] = modeIcon(card);
+  const e1 = card.w2 > card.w1 && card.st === 'done';
+  const e2 = card.w1 > card.w2 && card.st === 'done';
+  const c1 = card.tbd ? 'tr tbd' : e1 ? 'tr elim' : e2 ? 'tr winner' : card.w1>card.w2 ? 'tr lead' : 'tr';
+  const c2 = card.tbd ? 'tr tbd' : e2 ? 'tr elim' : e1 ? 'tr winner' : card.w2>card.w1 ? 'tr lead' : 'tr';
+  const cl = `sc${isFin?' fin':''}${isR1?' r1':''}${card.projected||card.tbd?' projected':''}${card.st==='live'?' live':''}${card.st==='done'?' done':''}`;
+  const showW1 = card.w1 > 0 ? card.w1 : '';
+  const showW2 = card.w2 > 0 ? card.w2 : '';
+  const safeT1 = escapeHtml(card.t1);
+  const safeT2 = escapeHtml(card.t2);
+  const safeS1 = escapeHtml(card.s1 || '');
+  const safeS2 = escapeHtml(card.s2 || '');
+  return `<div class="${cl}">
+    ${icon?`<span class="ss ${cls}">${icon}</span>`:''}
+    <div class="${c1}">${logoEl(card.t1, card.tbd)}<span class="t-sd">${safeS1}</span><span class="t-nm">${safeT1}</span><span class="t-wn">${showW1}</span></div>
+    <div class="sdiv"></div>
+    <div class="${c2}">${logoEl(card.t2, card.tbd)}<span class="t-sd">${safeS2}</span><span class="t-nm">${safeT2}</span><span class="t-wn">${showW2}</span></div>
+    ${gameLogHTML(card)}
+  </div>`;
+}
+
+function colHTML(cards, label, isR1=false, confLabel='') {
+  return `<div class="r-col ${isR1?'r1':''}">
+    ${isR1 ? `<div class="conf-lbl">${confLabel}</div>` : `<div class="rl">${label}</div>`}
+    ${cards.map(c=>scHTML(c,false,isR1)).join('')}
+  </div>`;
+}
+
+function renderBracket(data) {
+  const bracket = document.getElementById('bracket');
+  const empty = document.getElementById('empty');
+  if (!data) {
+    bracket.innerHTML = '';
+    empty.classList.add('on');
+    return;
+  }
+  empty.classList.remove('on');
+  document.getElementById('h-title').textContent = `${data.leagueName} Playoff Bracket ${data.year}`;
+  document.getElementById('h-sub').textContent = `${data.roundLabels[0]} → ${data.roundLabels[2]} → ${data.finals}`;
+
+  bracket.innerHTML = `
+    ${colHTML(data.L[0], data.roundLabels[0], true, data.leftLabel)}
+    <div class="g"></div>
+    ${colHTML(data.L[1], data.roundLabels[1])}
+    <div class="g"></div>
+    ${colHTML(data.L[2], data.roundLabels[2])}
+    <div class="gf"></div>
+    <div class="cc">
+      <div class="troph">${data.trophy}</div>
+      <div class="cc-lbl">${data.finals}</div>
+      ${scHTML(data.final,true,false)}
+    </div>
+    <div class="gf"></div>
+    ${colHTML(data.R[2], data.roundLabels[2])}
+    <div class="g"></div>
+    ${colHTML(data.R[1], data.roundLabels[1])}
+    <div class="g"></div>
+    ${colHTML(data.R[0], data.roundLabels[0], true, data.rightLabel)}
+  `;
+}
+
+async function updateBracket() {
+  const league = document.getElementById('league').value;
+  const year = document.getElementById('year').value;
+  const ldr = document.getElementById('ldr');
+  const ltxt = document.getElementById('ltxt');
+  const status = document.getElementById('status');
+  ldr.classList.add('on');
+  ltxt.textContent = 'Fetching postseason games…';
+  status.textContent = '';
+
+  try {
+    const events = await fetchPostseasonEvents(league, year);
+    ltxt.textContent = 'Building bracket…';
+    CURRENT = buildBracket(events, league, year);
+    renderBracket(CURRENT);
+    const stamp = new Date();
+    document.getElementById('f-upd').textContent = `Updated ${stamp.toLocaleDateString('en-US',{month:'short',day:'numeric'}).toUpperCase()} ${stamp.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}).toUpperCase()}`;
+    status.textContent = `✓ ${LEAGUES[league].name} ${year}: ${events.length} playoff games loaded`;
+    setTimeout(()=>{status.textContent='';}, STATUS_MESSAGE_DURATION);
+  } catch (e) {
+    CURRENT = null;
+    renderBracket(null);
+    status.textContent = `Fetch failed: ${e.message}`;
+  } finally {
+    ldr.classList.remove('on');
+    scaleToViewport();
+  }
+}
+
+function scaleToViewport() {
+  const scaler = document.getElementById('wrap-scaler');
+  const toolbar = document.querySelector('.toolbar');
+  const status = document.getElementById('status');
+  const availW = window.innerWidth;
+  const availH = window.innerHeight - (toolbar?.offsetHeight || 0) - (status?.offsetHeight || 0) - 26;
+  const scale = Math.min((availW * VIEWPORT_MARGIN_FACTOR) / BRACKET_WIDTH, (availH * VIEWPORT_MARGIN_FACTOR) / BRACKET_HEIGHT);
+  scaler.style.width = `${Math.round(BRACKET_WIDTH * scale)}px`;
+  scaler.style.height = `${Math.round(BRACKET_HEIGHT * scale)}px`;
+  document.getElementById('wrap').style.transform = `scale(${scale})`;
+  document.getElementById('wrap').style.transformOrigin = 'top left';
+}
+
+initSelectors();
+document.getElementById('h-date').textContent = todayStr();
+window.addEventListener('resize', scaleToViewport);
+scaleToViewport();
+updateBracket();
+</script>
+</body>
+</html>
