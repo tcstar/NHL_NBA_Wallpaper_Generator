@@ -153,6 +153,15 @@ function todayStr() {
   return new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
 }
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
 function initSelectors() {
   const leagueSel = document.getElementById('league');
   const yearSel = document.getElementById('year');
@@ -174,10 +183,12 @@ function initSelectors() {
 function logoEl(name, isTbd) {
   if (isTbd || !name || name === 'TBD') return '<div class="lg-fb">?</div>';
   const ab = name.split(' ').map(w=>w[0]).join('').slice(0,3).toUpperCase();
+  const safeName = escapeHtml(name);
+  const safeAb = escapeHtml(ab);
   const src = LOGO_CACHE[name];
-  if (!src) return `<div class="lg-fb">${ab}</div>`;
-  const fallback = encodeURIComponent(`<div class="lg-fb">${ab}</div>`);
-  return `<img src="${src}" alt="${name}" data-fallback="${fallback}" onerror="this.outerHTML=decodeURIComponent(this.dataset.fallback)">`;
+  if (!src) return `<div class="lg-fb">${safeAb}</div>`;
+  const fallback = encodeURIComponent(`<div class="lg-fb">${safeAb}</div>`);
+  return `<img src="${src}" alt="${safeName}" data-fallback="${fallback}" onerror="this.outerHTML=decodeURIComponent(this.dataset.fallback)">`;
 }
 
 function abbr(name) {
@@ -229,7 +240,7 @@ function parseRound(comp, ev) {
 
 async function espnFetch(url) {
   if (window.location.protocol === 'file:') {
-    throw new Error('Browser CORS blocks ESPN requests from file://. Run a local web server (python -m http.server 8000 or npx http-server).');
+    throw new Error('Browser CORS blocks ESPN requests from file://. Run a local web server (for example, python -m http.server 8000 or npx http-server).');
   }
   const r = await fetch(url);
   if (!r.ok) throw new Error(`ESPN fetch failed (${r.status})`);
@@ -438,11 +449,15 @@ function scHTML(card, isFin=false, isR1=false) {
   const cl = `sc${isFin?' fin':''}${isR1?' r1':''}${card.projected||card.tbd?' projected':''}${card.st==='live'?' live':''}${card.st==='done'?' done':''}`;
   const showW1 = card.w1 > 0 ? card.w1 : '';
   const showW2 = card.w2 > 0 ? card.w2 : '';
+  const safeT1 = escapeHtml(card.t1);
+  const safeT2 = escapeHtml(card.t2);
+  const safeS1 = escapeHtml(card.s1 || '');
+  const safeS2 = escapeHtml(card.s2 || '');
   return `<div class="${cl}">
     ${icon?`<span class="ss ${cls}">${icon}</span>`:''}
-    <div class="${c1}">${logoEl(card.t1, card.tbd)}<span class="t-sd">${card.s1||''}</span><span class="t-nm">${card.t1}</span><span class="t-wn">${showW1}</span></div>
+    <div class="${c1}">${logoEl(card.t1, card.tbd)}<span class="t-sd">${safeS1}</span><span class="t-nm">${safeT1}</span><span class="t-wn">${showW1}</span></div>
     <div class="sdiv"></div>
-    <div class="${c2}">${logoEl(card.t2, card.tbd)}<span class="t-sd">${card.s2||''}</span><span class="t-nm">${card.t2}</span><span class="t-wn">${showW2}</span></div>
+    <div class="${c2}">${logoEl(card.t2, card.tbd)}<span class="t-sd">${safeS2}</span><span class="t-nm">${safeT2}</span><span class="t-wn">${showW2}</span></div>
     ${gameLogHTML(card)}
   </div>`;
 }
