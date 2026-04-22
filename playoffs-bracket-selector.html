@@ -48,6 +48,7 @@ button:hover{background:rgba(255,255,255,0.14);}
 .sc.projected{border-color:rgba(245,197,24,.25);}
 .tr{display:flex;align-items:center;gap:4px;height:18px;}
 .tr img{width:16px;height:16px;object-fit:contain;}
+.lg-wrap{width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
 .lg-fb{width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:rgba(255,255,255,.45);}
 .t-sd{font-size:8px;color:rgba(255,255,255,.25);width:14px;text-align:right;font-family:'Barlow Condensed',sans-serif;}
 .t-nm{font-size:9px;font-weight:600;color:rgba(255,255,255,.76);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -192,8 +193,7 @@ function logoEl(name, isTbd) {
   const safeAb = escapeHtml(ab);
   const src = LOGO_CACHE[name];
   if (!src) return `<div class="lg-fb">${safeAb}</div>`;
-  const fallback = encodeURIComponent(`<div class="lg-fb">${safeAb}</div>`);
-  return `<img src="${src}" alt="${safeName}" data-fallback="${fallback}" onerror="this.outerHTML=decodeURIComponent(this.dataset.fallback)">`;
+  return `<span class="lg-wrap"><img src="${src}" alt="${safeName}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="lg-fb" style="display:none">${safeAb}</div></span>`;
 }
 
 function abbr(name) {
@@ -301,7 +301,7 @@ function buildBracket(events, leagueKey, year) {
     }
     const s = map[key];
     s.isLive = s.isLive || isLive;
-    s.round = Math.min(s.round, round);
+    s.round = Math.max(s.round, round);
     if (ev.date && (!s.firstDate || ev.date < s.firstDate)) s.firstDate = ev.date;
 
     if (comp.series?.competitors) {
@@ -387,7 +387,7 @@ function buildBracket(events, leagueKey, year) {
     if (s.isLive) st = 'live';
     else if (w1 > 0 || w2 > 0) st = 'done';
     /* Keep only the latest games so card logs stay readable on compact layout. */
-    const games = (s.games || []).sort((a,b)=>a.date < b.date ? -1 : 1).slice(-MAX_GAME_LOG_ROWS).map(g=>({
+    const games = (s.games || []).sort((a,b)=>String(a.date || '').localeCompare(String(b.date || ''))).slice(-MAX_GAME_LOG_ROWS).map(g=>({
       t1Score: g.homeName===s.t1 ? g.homeScore : g.awayScore,
       t2Score: g.homeName===s.t1 ? g.awayScore : g.homeScore,
       isLive: g.isLive
