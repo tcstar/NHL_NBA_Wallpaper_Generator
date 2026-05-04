@@ -918,9 +918,28 @@ function overlayLiveScores(base, live) {
       }
     }
   };
-  apply(base.L); apply(base.R);
+  /* Multiple passes: each pass applies live scores to slots that now have
+     real team names, then promotes winners into the next round's slots.
+     Pass 1 covers R1, pass 2 covers R2, pass 3 covers CF. */
+  for (let pass = 0; pass < 4; pass++) {
+    apply(base.L); apply(base.R);
+    applyWinnerPromotion(base);
+  }
+
+  /* Apply live data for the Finals separately (apply() only covers r1/r2/cf) */
   const lf = liveByPair[key(base.final)];
-  if (lf) { base.final.w1=lf.w1; base.final.w2=lf.w2; base.final.st=lf.st; base.final.games=lf.games; }
+  if (lf && lf._winsMap) {
+    base.final.w1 = lf._winsMap[base.final.t1] || 0;
+    base.final.w2 = lf._winsMap[base.final.t2] || 0;
+    const anyWin = base.final.w1 > 0 || base.final.w2 > 0;
+    base.final.st = lf.isLive ? 'live' : (base.final.w1===4||base.final.w2===4) ? 'done' : anyWin ? 'pending' : 'pending';
+    base.final.games = lf._games.map(g => ({
+      t1Score: g.homeName===base.final.t1 ? g.homeScore : g.awayScore,
+      t2Score: g.homeName===base.final.t1 ? g.awayScore : g.homeScore,
+      isLive: g.isLive, ot: g.otLabel,
+    }));
+    base.final.projected = false;
+  }
 
   /* Clear projected flag from all series — playoffs are active */
   const clearProjected = side => {
@@ -929,8 +948,6 @@ function overlayLiveScores(base, live) {
   };
   clearProjected(base.L); clearProjected(base.R);
   base.final.projected = false;
-
-  applyWinnerPromotion(base);
 }
 
 /* ── RENDER ── */
