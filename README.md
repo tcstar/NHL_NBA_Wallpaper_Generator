@@ -90,7 +90,9 @@ Both endpoints are open, require no authentication, and work directly from the b
 
 The app always builds the bracket from standings first (ensuring correct seed order and conference placement), then overlays live game scores on top. This means all 8 R1 series appear correctly from Day 1 of the playoffs even if not all series have started yet.
 
-Each time you click **Update**, the playoff scoreboard is fetched for the full date range from April 1 through today — this is what populates the per-game score log for every completed game in each series. Scores do not update automatically; clicking Update is required to refresh results.
+Round numbers are read from each game's `competition.type.abbreviation` field, which ESPN populates consistently for both NHL and NBA: `RD16` = Round 1, `QTR` = Round 2, `SEMI` = Conference Finals, `FINAL` = Championship. Note that the `series.type` field in ESPN's current API returns a plain string (`"playoff"`) rather than a structured object and is not used for round detection.
+
+Each time you click **Update**, the playoff scoreboard is fetched for the full date range from April 1 through today — this is what populates the per-game score log for every completed game in each series. Scores do not update automatically; clicking Update is required to refresh results. Both leagues are fetched in parallel, so the full update completes in roughly the time of a single request rather than two sequential ones.
 
 ---
 
@@ -110,7 +112,7 @@ West R1 → West R2 → West CF → [Championship] ← East CF ← East R2 ← E
 
 NHL R1 uses the division-based format: best division winner vs WC2, 2nd vs 3rd within that division, other division winner vs WC1, and 2nd vs 3rd within that division. The best division winner (most points) appears at the top of the bracket.
 
-NBA R1 uses seeds 1–8 per conference. Seeds 7 and 8 are determined by the play-in tournament and are resolved automatically once those results are available. The bracket follows the standard NBA display order — 1 seed at top, 4v5 second, 3v6 third, 2 seed at bottom — so the 1 and 2 seeds converge at the Conference Finals rather than meeting earlier.
+NBA R1 uses seeds 1–8 per conference. Seeds 7 and 8 are determined by the play-in tournament and are resolved automatically once those results are available — the R1 card shows the play-in placeholder until ESPN confirms the winner, then updates in place. The bracket follows the standard NBA display order — 1 seed at top, 4v5 second, 3v6 third, 2 seed at bottom — so the 1 and 2 seeds converge at the Conference Finals rather than meeting earlier.
 
 ---
 
