@@ -80,7 +80,7 @@ button:hover{background:rgba(255,255,255,0.14);}
 .gl-row.gll .gl-sc{color:rgba(255,255,255,0.25);}
 .gl-row.glv .gl-sc{color:#4ade80;}
 .gl-win{color:rgba(255,255,255,0.75);font-weight:700;}
-.gl-los{color:rgba(255,255,255,0.2);}
+.gl-los{color:rgba(255,255,255,0.3);}
 .gl-row.glv .gl-win,.gl-row.glv .gl-los{color:#4ade80;}
 
 .cc{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;flex-shrink:0;width:213px;}
@@ -567,11 +567,17 @@ function buildPlayoffBracket(events, trophy, label) {
       || '';
     const aConf = away.team?.groups?.parent?.abbreviation || away.team?.conferenceId || '';
 
-    /* Round number: from series type or season type */
-    const roundNum = comp.series?.type?.id
-      || comp.type?.id
-      || ev.season?.slug?.match(/round-(\d)/)?.[1]
-      || '1';
+    /* Round number: comp.type.abbreviation is the most reliable source.
+       ESPN uses: RD16=R1, QTR=R2, SEMI=CF(R3), FINAL=Finals(R4).
+       comp.series?.type is a plain string ('playoff') in current API responses,
+       not an object, so .id is always undefined. Fall back to comp.type.id
+       (a raw numeric id) only if abbreviation is missing. */
+    const compTypeAbbr = comp.type?.abbreviation || '';
+    const roundNum = compTypeAbbr === 'RD16' ? 1
+                   : compTypeAbbr === 'QTR'  ? 2
+                   : compTypeAbbr === 'SEMI' ? 3
+                   : compTypeAbbr === 'FINAL'? 4
+                   : (parseInt(comp.type?.id) > 13 ? parseInt(comp.type?.id) - 13 : 1);
 
     const key = [hName, aName].sort().join('|');
     if (!seriesMap[key]) {
@@ -637,18 +643,11 @@ function buildPlayoffBracket(events, trophy, label) {
     return a.firstDate < b.firstDate ? -1 : 1;
   });
 
-  const r1All = allSeries.filter(s => s.round <= 1 || (s.round === 1));
-  const r2All = allSeries.filter(s => s.round === 2);
-  const cfAll = allSeries.filter(s => s.round === 3);
-  const finAll= allSeries.filter(s => s.round === 4 || s.round >= 4);
-
-  /* If round numbers are unreliable (all come back as 1), fall back to
-     grouping by total games played: R1 has most series (8), R2 has 4, etc. */
-  const byCount = r1All.length > 6; /* 7+ series → probably has real round data */
-  const r1 = byCount ? r1All : allSeries.slice(0,8);
-  const r2 = byCount ? r2All : allSeries.slice(8,12);
-  const cf = byCount ? cfAll : allSeries.slice(12,14);
-  const fin= byCount ? finAll: allSeries.slice(14,15);
+  /* Round numbers from comp.type.abbreviation: RD16=R1, QTR=R2, SEMI=R3, FINAL=R4 */
+  const r1  = allSeries.filter(s => s.round === 1);
+  const r2  = allSeries.filter(s => s.round === 2);
+  const cf  = allSeries.filter(s => s.round === 3);
+  const fin = allSeries.filter(s => s.round >= 4);
 
   /* ── Step 3: try to split R1 into East (L) and West (R) by conference ──
      Detect conference from team names, ESPN group data, or event notes.
@@ -852,19 +851,29 @@ function overlayLiveScores(base, live) {
       isLive:   entry.isLive,
     };
     liveByPair[rawKey] = lm;
-    if (entry.hName) liveBySeed[entry.hName] = lm;
-    if (entry.aName) liveBySeed[entry.aName] = lm;
+    /* liveBySeed is only used to resolve play-in slots (tbd2=true) in R1.
+       Only index round=1 series — higher rounds contain the same team names
+       and would overwrite the R1 entry, causing the R2 opponent to appear
+       in the R1 play-in slot instead of the actual play-in winner. */
+    if (entry.round === 1) {
+      if (entry.hName) liveBySeed[entry.hName] = lm;
+      if (entry.aName) liveBySeed[entry.aName] = lm;
+    }
   }
 
-  /* Also index from bracket slots as fallback */
+  /* Also index from bracket slots as fallback for liveByPair keyed lookups only.
+     We deliberately do NOT populate liveBySeed here — liveBySeed is used only for
+     play-in slot resolution, which requires _hName/_aName fields. Plain matchup
+     objects from bracket slots lack those fields, so the lmHasT1 guard would
+     reject them anyway. More importantly, adding play-in winner names to liveBySeed
+     from bracket slots risks mapping e.g. "Los Angeles Lakers" to the wrong series
+     entry, causing that team to appear in multiple R1 cards. */
   function indexLive(side) {
     for (const rd of [side.r1,side.r2,side.cf]) {
       for (const m of rd) {
         if (m.tbd) continue;
         const k = key(m);
         if (k && !liveByPair[k]) liveByPair[k] = m;
-        if (m.t1 && !m.t1.startsWith('Play-In') && !liveBySeed[m.t1]) liveBySeed[m.t1] = m;
-        if (m.t2 && !m.t2.startsWith('Play-In') && !liveBySeed[m.t2]) liveBySeed[m.t2] = m;
       }
     }
   }
@@ -894,9 +903,14 @@ function overlayLiveScores(base, live) {
             m.projected = false;
           }
         } else {
-          /* Case 2: play-in slot — t2 is a placeholder, find live series by t1 */
+          /* Case 2: play-in slot — t2 is a placeholder, find live series by t1.
+             Guard: only use this series if m.t1 is actually one of its two teams.
+             This prevents a series found via liveBySeed from a *different* team
+             (e.g. play-in winner who shares the same lm object) from being applied
+             to the wrong bracket slot, which causes duplicate team display. */
           const lm = liveBySeed[m.t1];
-          if (lm && lm._winsMap) {
+          const lmHasT1 = lm && (lm._hName === m.t1 || lm._aName === m.t1);
+          if (lm && lm._winsMap && lmHasT1) {
             /* Determine which team is the play-in winner (not m.t1) */
             const playInTeam = lm._hName === m.t1 ? lm._aName : lm._hName;
             m.t2    = playInTeam;
@@ -1123,10 +1137,11 @@ async function updateScores() {
   const stat = document.getElementById('status');
   ldr.classList.add('on'); stat.textContent = ''; ltxt.textContent = 'Detecting active seasons…';
   try {
-    ltxt.textContent = 'Fetching NHL data…';
-    D.nhl = await loadLeague('hockey','nhl','🏒','Stanley Cup Final');
-    ltxt.textContent = 'Fetching NBA data…';
-    D.nba = await loadLeague('basketball','nba','🏀','NBA Finals');
+    ltxt.textContent = 'Fetching NHL + NBA data…';
+    [D.nhl, D.nba] = await Promise.all([
+      loadLeague('hockey','nhl','🏒','Stanley Cup Final'),
+      loadLeague('basketball','nba','🏀','NBA Finals'),
+    ]);
     render();
     const _updatedAt = new Date();
     function _fmtUpd() {
