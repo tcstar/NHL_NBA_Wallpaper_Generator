@@ -46,16 +46,16 @@ If you prefer to run the file locally rather than via the hosted link, browsers 
 **Mac / Linux:**
 ```bash
 cd ~/Downloads          # or wherever you saved the file
-python3 -m http.server 8000
+python3 -m http.server 8080
 ```
 
 **Windows (Command Prompt):**
 ```cmd
 cd %USERPROFILE%\Downloads
-python -m http.server 8000
+python -m http.server 8080
 ```
 
-Then open **http://localhost:8000** in your browser and click the file name. Stop the server with `Ctrl+C` when done.
+Then open **http://localhost:8080** in your browser and click the file name. Stop the server with `Ctrl+C` when done.
 
 ---
 
